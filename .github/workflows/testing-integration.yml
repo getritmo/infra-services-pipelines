@@ -93,15 +93,15 @@ jobs:
           github.event.repository.name == 'infra-service-pipelines'
           || github.event.repository.name == 'infra-testing-repo'
         with:
-          repository: "jdockerty/go-dummy-api"
-          path: ./testing_repo
+          repository: "docker pull mockserver/mockserver"
+          path: ./
 
-      - name: Move testing repo to main repo path
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        run: |
-          mv  ./testing_repo/* ./; rm -Rvf ./testing_repo
+      # - name: Move testing repo to main repo path
+      #   if: |
+      #     github.event.repository.name == 'infra-service-pipelines'
+      #     || github.event.repository.name == 'infra-testing-repo'
+      #   run: |
+      #     mv  ./testing_repo/* ./; rm -Rvf ./testing_repo
 
       - name: DEBUG
         if: ${{ inputs.ACT_TESTING == 'true'}}
