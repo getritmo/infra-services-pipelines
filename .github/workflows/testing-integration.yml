@@ -154,26 +154,22 @@ jobs:
       - name: Build, tag and push container from MAIN
         id: build-image
         if: ${{ inputs.ENVIRONMENT == 'sbx'}}
-        env:
-          IMAGE_TAG: nightly_${{ steps.vars.outputs.sha_short }}
         run: |
           # Build a docker container and
           # push it to ECR
-          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:$IMAGE_TAG .
+          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:nightly_${{ steps.vars.outputs.sha_short }} .
           docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:$IMAGE_TAG
-          echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:$IMAGE_TAG"
+          echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:nightly_${{ steps.vars.outputs.sha_short }}"
 
       - name: Build, tag and push container from PRODUCTION
         id: build-image-pro
         if: ${{ inputs.ENVIRONMENT != 'sbx'}}
-        env:
-          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
         run: |
           # Build a docker container and
           # push it to ECR
-          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:$IMAGE_TAG .
+          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ steps.vars.outputs.sha_short }} .
           docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:$IMAGE_TAG
-          echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:$IMAGE_TAG"
+          echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ steps.vars.outputs.sha_short }}"
 
       - name: Save build number
         id: build-number-save
