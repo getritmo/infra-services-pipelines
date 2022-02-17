@@ -48,7 +48,7 @@ on:
       PRIVATE_REPO_ACCESS:
         required: true
 
-name: 01-Testing
+name: Services Testing & Integration
 
 jobs:
   prepare:

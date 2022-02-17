@@ -51,7 +51,7 @@ on:
       PRIVATE_REPO_ACCESS:
         required: true
 
-name: 03-Production
+name: Services Production
 
 jobs:
   deploy:
