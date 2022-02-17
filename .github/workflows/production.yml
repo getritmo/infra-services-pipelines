@@ -40,7 +40,9 @@ on:
       IMAGE_TAG:
         required: true
         type: string
-
+      TESTING_REPO:
+        required: true
+        type: string
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -59,10 +61,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        id: checkout_repo
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
