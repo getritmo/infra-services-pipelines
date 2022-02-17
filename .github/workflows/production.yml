@@ -1,0 +1,164 @@
+on:
+  workflow_call:
+    inputs:
+      ECR_REGISTRY:
+        required: true
+        type: string
+      CLOUDFRONT_DISTRIBUTION_API:
+        required: false
+        type: string
+      CLOUDFRONT_DISTRIBUTION_STATICS:
+        required: false
+        type: string
+      REPOSITORY_NAME:
+        required: true
+        type: string
+      SERVICE_NAME:
+        required: true
+        type: string
+      CONTAINER_NAME:
+        required: true
+        type: string
+      CLUSTER_INT:
+        required: true
+        type: string
+      CLUSTER_PUB:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      DOC_PATH:
+        required: true
+        type: string
+      API_DOC_S3_BUCKET:
+        required: true
+        type: string
+      ACT_TESTING:
+        required: true
+        type: string
+      IMAGE_TAG:
+        required: true
+        type: string
+      TESTING_REPO:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      PRIVATE_REPO_ACCESS:
+        required: true
+
+name: Services Production
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    steps:
+      - name: Download release asset
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: service-integration.yml
+          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+          workflow_conclusion: success
+          branch: production
+          name: swagger_documentation
+          path: ./docs
+
+      - name: Download task-definition
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: service-integration.yml
+          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+          workflow_conclusion: success
+          branch: production
+          name: service_definition
+          path: ./service_config
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: service_config/${{ inputs.ENVIRONMENT }}/task-definition.json
+          container-name: ${{ inputs.CONTAINER_NAME }}
+          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ github.event.client_payload.slash_command.args.named.image_version }}
+
+      - name: Deploying ECS task on ECS cluster...wait till finish, maybe some minutes.
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ inputs.SERVICE_NAME }}
+          cluster: ${{ inputs.CLUSTER_INT }}
+          wait-for-service-stability: true
+
+  tag:
+    name: Tag Release
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    needs: [deploy]
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d')"
+
+      - name: Checkout branch "production"
+        uses: actions/checkout@v2
+        with:
+          ref: production
+
+      - name: Tag snapshot
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}
+
+  swagger:
+    name: swagger
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    needs: [deploy]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ./docs
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Rename swagger to service name
+        shell: bash
+        run: |
+          mv ./docs/swagger_documentation/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+
+      - name: Push api doc to swagger bucket
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl private --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+          SOURCE_DIR: ${{ inputs.DOC_PATH }}
+
+      - name: Invalidate old cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
