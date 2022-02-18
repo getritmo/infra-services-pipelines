@@ -79,7 +79,7 @@ jobs:
           workflow_conclusion: success
           branch: production
           name: service_definition
-          path: ./service_config
+          path: ./service_definition
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
