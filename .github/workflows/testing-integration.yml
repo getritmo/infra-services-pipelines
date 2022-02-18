@@ -1,5 +1,5 @@
 ---
-on:
+'on':
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -31,6 +31,9 @@ on:
         type: string
       ENVIRONMENT:
         required: true
+        type: string
+      MAIN_REPO_PREFIX:
+        required: false
         type: string
       REPOSITORY_NAME:
         required: true
@@ -233,7 +236,7 @@ jobs:
         with:
           task-definition: ./service_definition/${{ inputs.ENVIRONMENT }}/task-definition.json
           container-name: ${{ inputs.CONTAINER_NAME }}
-          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ needs.build.outputs.image_tag }}
+          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs_MAIN_REPO_PREFIX}}${{ needs.build.outputs.image_tag }}
 
       - name: Deploying ECS task on ECS cluster...
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
