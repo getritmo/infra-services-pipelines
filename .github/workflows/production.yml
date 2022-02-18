@@ -113,7 +113,7 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d')"
+        run: echo "::set-output name=date::$(date +'%d%m%Y:%h%m%s')"
 
       - name: Checkout branch "production"
         uses: actions/checkout@v2
@@ -152,7 +152,7 @@ jobs:
       - name: Rename swagger to service name
         shell: bash
         run: |
-          mv ./docs/swagger_documentation/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+          mv ./docs/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
 
       - name: Push api doc to swagger bucket
         uses: jakejarvis/s3-sync-action@master
