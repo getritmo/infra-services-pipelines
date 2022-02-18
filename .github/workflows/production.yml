@@ -113,7 +113,7 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%d%m%Y:%h%m%s')"
+        run: echo "::set-output name=date::$(date +'%Y%m%d')"
 
       - name: Checkout branch "production"
         uses: actions/checkout@v2
