@@ -108,7 +108,7 @@ jobs:
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-      - name: Checkout TESTING repo
+      - name: DEBUG - Checkout TESTING repo
         uses: actions/checkout@v2
         if: |
           github.event.repository.name == 'infra-service-pipelines'
@@ -117,7 +117,7 @@ jobs:
           repository: ${{ inputs.TESTING_REPO }}
           path: ./temp-testing
 
-      - name: Checkout CONFIG repo
+      - name: DEBUG - Checkout CONFIG repo
         uses: actions/checkout@v2
         if: |
           github.event.repository.name == 'infra-service-pipelines'
@@ -128,10 +128,13 @@ jobs:
           ref: main
           token: ${{ secrets.PRIVATE_REPO_ACCESS }}
 
-      - name: Merging all repos to SERVICE repo
+      - name: DEBUG - Merging all repos to SERVICE repo
         run: |
           rsync -av temp-config/ ./
           rsync -av temp-testing/ ./
+        if: |
+          github.event.repository.name == 'infra-service-pipelines'
+          || github.event.repository.name == 'infra-testing-repo'
 
       - name: DEBUG - List files
         if: ${{ inputs.ACT_TESTING == 'true'}}
