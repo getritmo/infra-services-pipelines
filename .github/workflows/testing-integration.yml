@@ -1,5 +1,5 @@
 ---
-'on':
+on:
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -22,6 +22,9 @@
         type: string
       CONTAINER_NAME:
         required: true
+        type: string
+      DOCKER_BUILD_PATH:
+        required: false
         type: string
       DOC_PATH:
         required: true
@@ -160,9 +163,7 @@ jobs:
       - name: Build, tag and push container
         id: build-image
         run: |
-          # Build a docker container and
-          # push it to ECR
-          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} .
+          docker build -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} -f devops/docker/deploy/Dockerfile .
           docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}
           echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}"
 
@@ -189,7 +190,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: swagger_documentation
-          path: ./docs/swagger.yml
+          path: ./docs/swagger.yaml
 
   deploy:
     name: deploy
@@ -260,7 +261,7 @@ jobs:
       - name: Rename swagger to service name
         shell: bash
         run: |
-          mv ./docs/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+          mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
 
       - name: Push api doc to swagger bucket
         uses: jakejarvis/s3-sync-action@master
