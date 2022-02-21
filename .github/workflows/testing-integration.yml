@@ -270,7 +270,7 @@ jobs:
       - name: Push api doc to swagger bucket
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --acl private --follow-symlinks --delete
+          args: --acl private --follow-symlinks
         env:
           AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
