@@ -1,5 +1,5 @@
 ---
-'on':
+on:
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -22,6 +22,9 @@
         type: string
       CONTAINER_NAME:
         required: true
+        type: string
+      DOCKER_BUILD_PATH:
+        required: false
         type: string
       DOC_PATH:
         required: true
@@ -162,7 +165,7 @@ jobs:
         run: |
           # Build a docker container and
           # push it to ECR
-          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} .
+          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} {{ inputs.DOCKER BUILD_PATH }} .
           docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}
           echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}"
 

@@ -1,4 +1,4 @@
-'on':
+on:
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -21,6 +21,9 @@
         type: string
       CONTAINER_NAME:
         required: true
+        type: string
+      DOCKER_BUILD_PATH:
+        required: false
         type: string
       DOC_PATH:
         required: true
