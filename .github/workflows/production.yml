@@ -1,7 +1,10 @@
-on:
+'on':
   workflow_call:
     inputs:
-      ECR_REGISTRY:
+      ACT_TESTING:
+        required: true
+        type: string
+      API_DOC_S3_BUCKET:
         required: true
         type: string
       CLOUDFRONT_DISTRIBUTION_API:
@@ -10,45 +13,42 @@ on:
       CLOUDFRONT_DISTRIBUTION_STATICS:
         required: false
         type: string
-      REPOSITORY_NAME:
-        required: true
-        type: string
-      SERVICE_NAME:
-        required: true
-        type: string
-      CONTAINER_NAME:
-        required: true
-        type: string
       CLUSTER_INT:
         required: true
         type: string
       CLUSTER_PUB:
         required: true
         type: string
-      ENVIRONMENT:
+      CONTAINER_NAME:
         required: true
         type: string
       DOC_PATH:
         required: true
         type: string
-      API_DOC_S3_BUCKET:
+      ECR_REGISTRY:
         required: true
         type: string
-      ACT_TESTING:
+      ENVIRONMENT:
         required: true
         type: string
       IMAGE_TAG:
+        required: true
+        type: string
+      REPOSITORY_NAME:
+        required: true
+        type: string
+      SERVICE_NAME:
         required: true
         type: string
       TESTING_REPO:
         required: true
         type: string
     secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
       AWS_ACCOUNT_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
-        required: true
-      AWS_ACCESS_KEY_ID:
         required: true
       PRIVATE_REPO_ACCESS:
         required: true
@@ -79,7 +79,7 @@ jobs:
           workflow_conclusion: success
           branch: production
           name: service_definition
-          path: ./service_config
+          path: ./service_definition
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -88,21 +88,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
+      - name: Generate task-definition.json
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: service_config/${{ inputs.ENVIRONMENT }}/task-definition.json
+          task-definition: ./service_definition/${{ inputs.ENVIRONMENT }}/task-definition.json
           container-name: ${{ inputs.CONTAINER_NAME }}
-          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ github.event.client_payload.slash_command.args.named.image_version }}
+          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ github.event.client_payload.slash_command.args.named.image_version }}
 
-      - name: Deploying ECS task on ECS cluster...wait till finish, maybe some minutes.
+      - name: Deploying ECS task on ECS cluster...
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ inputs.SERVICE_NAME }}
           cluster: ${{ inputs.CLUSTER_INT }}
           wait-for-service-stability: true
+
 
   tag:
     name: Tag Release
@@ -112,7 +113,7 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d')"
+        run: echo "::set-output name=date::$(date +'%Y%m%d-%H%M%S')"
 
       - name: Checkout branch "production"
         uses: actions/checkout@v2
@@ -131,9 +132,14 @@ jobs:
     environment: ${{ inputs.ENVIRONMENT }}
     needs: [deploy]
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
+      - name: Download release asset
+        uses: dawidd6/action-download-artifact@v2
         with:
+          workflow: service-integration.yml
+          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+          workflow_conclusion: success
+          branch: production
+          name: swagger_documentation
           path: ./docs
 
       - name: Configure AWS credentials
@@ -146,12 +152,12 @@ jobs:
       - name: Rename swagger to service name
         shell: bash
         run: |
-          mv ./docs/swagger_documentation/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+          mv ./docs/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
 
       - name: Push api doc to swagger bucket
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --acl private --follow-symlinks --delete
+          args: --acl private --follow-symlinks
         env:
           AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
