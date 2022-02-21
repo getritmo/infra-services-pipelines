@@ -165,7 +165,7 @@ jobs:
         run: |
           # Build a docker container and
           # push it to ECR
-          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} {{ inputs.DOCKER_BUILD_PATH }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} .
+          docker build {{ inputs.DOCKER_BUILD_PATH }} --build-arg github_token=${{ secrets.PRIVATE_REPO_ACCESS }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} .
           docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}
           echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}"
 
