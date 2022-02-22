@@ -155,7 +155,7 @@ jobs:
       - name: Rename swagger to service name
         shell: bash
         run: |
-          mv ./docs/swagger.yml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+          mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
 
       - name: Push api doc to swagger bucket
         uses: jakejarvis/s3-sync-action@master
