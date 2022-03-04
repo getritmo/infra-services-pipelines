@@ -133,6 +133,9 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    if: |
+      github_repository != 'backend-api-users' ||
+      github.repository != 'backend-gateway'
     needs: [deploy]
     steps:
       - name: Download release asset
