@@ -47,6 +47,10 @@ on:
       TESTING_REPO:
         required: true
         type: string
+      SWAGGER:
+        required: true
+        type: boolean
+
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -243,9 +247,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: |
-      github_repository != 'backend-api-users' ||
-      github.repository != 'backend-gateway'
+    if: inputs.SWAGGER == false
     needs: [deploy]
     steps:
       - name: Download artifacts
