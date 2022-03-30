@@ -1,0 +1,26 @@
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Sid": "Allow Readonly for all services ECS and EKS",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:BatchGetImage",
+                "ecr:GetAuthorizationToken",
+                "ecr:GetDownloadUrlForLayer"
+            ]
+        },
+        {
+            "Sid": "Allow all to root account",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::751841590162:root"
+                ]
+            },
+            "Action": "*"
+        }
+    ]
+}
