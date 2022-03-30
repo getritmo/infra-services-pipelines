@@ -70,7 +70,7 @@ jobs:
           workflow: service-integration.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
           workflow_conclusion: success
-          branch: production
+          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
           name: swagger_documentation
           path: ./docs
 
@@ -80,7 +80,7 @@ jobs:
           workflow: service-integration.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
           workflow_conclusion: success
-          branch: production
+          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
           name: service_definition
           path: ./service_definition
 
@@ -141,7 +141,7 @@ jobs:
           workflow: service-integration.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
           workflow_conclusion: success
-          branch: production
+          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
           name: swagger_documentation
           path: ./docs
 
