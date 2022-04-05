@@ -65,8 +65,7 @@ on:
 name: Services Testing & Integration
 
 jobs:
-
-  testing-variable:
+  testing-variable-true:
     name: testing-default
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
@@ -75,222 +74,231 @@ jobs:
       - name: testing
         run: echo "value from SWAGGER var is = ${{ inputs.SWAGGER }}"
 
-  prepare:
-    name: prepare
+  testing-variable-false:
+    name: testing-default
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    if: ${{ inputs.SWAGGER == 'false' }}
     steps:
-      - name: DEBUG
-        if: ${{ inputs.ACT_TESTING == 'true'}}
-        run: |
-          ls -alrt; printenv
+      - name: testing
+        run: echo "value from SWAGGER var is = ${{ inputs.SWAGGER }}"
 
-      - name: Checkout CONFIG repo
-        uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: getritmo/infra-pipeline-configuration
-          path: ./
-          ref: main
-          token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+  # prepare:
+  #   name: prepare
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.ENVIRONMENT }}
+  #   steps:
+  #     - name: DEBUG
+  #       if: ${{ inputs.ACT_TESTING == 'true'}}
+  #       run: |
+  #         ls -alrt; printenv
 
-      - name: Create ECR registry if doesnt exists
-        uses: getritmo/aws-ecr-action@v1.1
-        with:
-          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-          repo: ${{ inputs.REPOSITORY_NAME }}
-          region: eu-west-1
-          create_repo: true
-          set_repo_policy: true
-          repo_policy_file: devops/ecr_config/ecr_readonly.json
+  #     - name: Checkout CONFIG repo
+  #       uses: actions/checkout@v2
+  #       if: |
+  #         github.event.repository.name == 'infra-service-pipelines'
+  #         || github.event.repository.name == 'infra-testing-repo'
+  #       with:
+  #         repository: getritmo/infra-pipeline-configuration
+  #         path: ./
+  #         ref: main
+  #         token: ${{ secrets.PRIVATE_REPO_ACCESS }}
 
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    environment: ${{ inputs.ENVIRONMENT }}
-    outputs:
-      sha_short: ${{ steps.vars.outputs.sha_short }}
-      ecr_registry: ${{ steps.login-ecr.outputs.registry }}
-      image_tag: ${{ steps.vars.outputs.sha_short }}
-    steps:
-      - name: Checkout SERVICE repo
-        uses: actions/checkout@v2
-        id: checkout_repo
+  #     - name: Create ECR registry if doesnt exists
+  #       uses: getritmo/aws-ecr-action@v1.1
+  #       with:
+  #         access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+  #         repo: ${{ inputs.REPOSITORY_NAME }}
+  #         region: eu-west-1
+  #         create_repo: true
+  #         set_repo_policy: true
+  #         repo_policy_file: devops/ecr_config/ecr_readonly.json
 
-      - name: Set outputs
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+  # build:
+  #   name: build
+  #   runs-on: ubuntu-latest
+  #   needs: [prepare]
+  #   environment: ${{ inputs.ENVIRONMENT }}
+  #   outputs:
+  #     sha_short: ${{ steps.vars.outputs.sha_short }}
+  #     ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+  #     image_tag: ${{ steps.vars.outputs.sha_short }}
+  #   steps:
+  #     - name: Checkout SERVICE repo
+  #       uses: actions/checkout@v2
+  #       id: checkout_repo
 
-      - name: DEBUG - Checkout TESTING repo
-        uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: ${{ inputs.TESTING_REPO }}
-          path: ./temp-testing
+  #     - name: Set outputs
+  #       id: vars
+  #       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-      - name: DEBUG - Checkout CONFIG repo
-        uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: getritmo/infra-pipeline-configuration
-          path: ./temp-config
-          ref: main
-          token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+  #     - name: DEBUG - Checkout TESTING repo
+  #       uses: actions/checkout@v2
+  #       if: |
+  #         github.event.repository.name == 'infra-service-pipelines'
+  #         || github.event.repository.name == 'infra-testing-repo'
+  #       with:
+  #         repository: ${{ inputs.TESTING_REPO }}
+  #         path: ./temp-testing
 
-      - name: DEBUG - Merging all repos to SERVICE repo
-        run: |
-          rsync -av temp-config/ ./
-          rsync -av temp-testing/ ./
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
+  #     - name: DEBUG - Checkout CONFIG repo
+  #       uses: actions/checkout@v2
+  #       if: |
+  #         github.event.repository.name == 'infra-service-pipelines'
+  #         || github.event.repository.name == 'infra-testing-repo'
+  #       with:
+  #         repository: getritmo/infra-pipeline-configuration
+  #         path: ./temp-config
+  #         ref: main
+  #         token: ${{ secrets.PRIVATE_REPO_ACCESS }}
 
-      - name: DEBUG - List files
-        if: ${{ inputs.ACT_TESTING == 'true'}}
-        run: |
-          ls -R
+  #     - name: DEBUG - Merging all repos to SERVICE repo
+  #       run: |
+  #         rsync -av temp-config/ ./
+  #         rsync -av temp-testing/ ./
+  #       if: |
+  #         github.event.repository.name == 'infra-service-pipelines'
+  #         || github.event.repository.name == 'infra-testing-repo'
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+  #     - name: DEBUG - List files
+  #       if: ${{ inputs.ACT_TESTING == 'true'}}
+  #       run: |
+  #         ls -R
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: eu-west-1
 
-      - name: Check outputs
-        run: |
-          echo ${{ steps.vars.outputs.sha_short }}
-          echo ${{ steps.login-ecr.outputs.registry }}
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag and push container
-        id: build-image
-        run: |
-          docker build -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} -f devops/docker/deploy/Dockerfile .
-          docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}
-          echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}"
+  #     - name: Check outputs
+  #       run: |
+  #         echo ${{ steps.vars.outputs.sha_short }}
+  #         echo ${{ steps.login-ecr.outputs.registry }}
 
-      - name: Save build number
-        id: build-number-save
-        run: echo ${{ steps.vars.outputs.sha_short }} > buildimage.txt
+  #     - name: Build, tag and push container
+  #       id: build-image
+  #       run: |
+  #         docker build -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} -f devops/docker/deploy/Dockerfile .
+  #         docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}
+  #         echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}"
 
-      - name: Publish image version
-        id: publish-image-version
-        uses: actions/upload-artifact@v2
-        with:
-          name: image_version
-          path: buildimage.txt
+  #     - name: Save build number
+  #       id: build-number-save
+  #       run: echo ${{ steps.vars.outputs.sha_short }} > buildimage.txt
 
-      - name: Publish Service definition
-        id: publish-service-definition
-        uses: actions/upload-artifact@v2
-        with:
-          name: service_definition
-          path: ./devops/service_config
+  #     - name: Publish image version
+  #       id: publish-image-version
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: image_version
+  #         path: buildimage.txt
 
-      - name: Publish Swagger documentation
-        id: publish-swagger-documentation
-        uses: actions/upload-artifact@v2
-        with:
-          name: swagger_documentation
-          path: ./docs/swagger.yaml
+  #     - name: Publish Service definition
+  #       id: publish-service-definition
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: service_definition
+  #         path: ./devops/service_config
 
-  deploy:
-    name: deploy
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
-    needs: [build]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: ./
+  #     - name: Publish Swagger documentation
+  #       id: publish-swagger-documentation
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: swagger_documentation
+  #         path: ./docs/swagger.yaml
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+  # deploy:
+  #   name: deploy
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.ENVIRONMENT }}
+  #   needs: [build]
+  #   steps:
+  #     - name: Download artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         path: ./
 
-      - name: DEBUG - List files
-        if: ${{ inputs.ACT_TESTING == 'true'}}
-        run: |
-          ls -R
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: eu-west-1
 
-      - name: Print image version
-        id: recover-build-image
-        shell: bash
-        run: |
-          BUILDIMAGE=`cat ./image_version/buildimage.txt`
-          echo The result is $BUILDIMAGE
-          echo "::set-output name=image::$BUILDIMAGE"
+  #     - name: DEBUG - List files
+  #       if: ${{ inputs.ACT_TESTING == 'true'}}
+  #       run: |
+  #         ls -R
 
-      - name: Generate task-definition.json
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ./service_definition/${{ inputs.ENVIRONMENT }}/task-definition.json
-          container-name: ${{ inputs.CONTAINER_NAME }}
-          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ needs.build.outputs.image_tag }}
+  #     - name: Print image version
+  #       id: recover-build-image
+  #       shell: bash
+  #       run: |
+  #         BUILDIMAGE=`cat ./image_version/buildimage.txt`
+  #         echo The result is $BUILDIMAGE
+  #         echo "::set-output name=image::$BUILDIMAGE"
 
-      - name: Deploying ECS task on ECS cluster...
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ inputs.SERVICE_NAME }}
-          cluster: ${{ inputs.CLUSTER_INT }}
-          wait-for-service-stability: true
+  #     - name: Generate task-definition.json
+  #       id: task-def
+  #       uses: aws-actions/amazon-ecs-render-task-definition@v1
+  #       with:
+  #         task-definition: ./service_definition/${{ inputs.ENVIRONMENT }}/task-definition.json
+  #         container-name: ${{ inputs.CONTAINER_NAME }}
+  #         image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ needs.build.outputs.image_tag }}
 
-  swagger:
-    name: swagger
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ inputs.SWAGGER == 'true' }}
-    needs: [deploy]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: ./docs
-          name: swagger_documentation
+  #     - name: Deploying ECS task on ECS cluster...
+  #       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+  #       with:
+  #         task-definition: ${{ steps.task-def.outputs.task-definition }}
+  #         service: ${{ inputs.SERVICE_NAME }}
+  #         cluster: ${{ inputs.CLUSTER_INT }}
+  #         wait-for-service-stability: true
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+  # swagger:
+  #   name: swagger
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.ENVIRONMENT }}
+  #   if: ${{ inputs.SWAGGER == 'true' }}
+  #   needs: [deploy]
+  #   steps:
+  #     - name: Download artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         path: ./docs
+  #         name: swagger_documentation
 
-      - name: Rename swagger to service name
-        shell: bash
-        run: |
-          mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: eu-west-1
 
-      - name: Push api doc to swagger bucket
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --acl private --follow-symlinks
-        env:
-          AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-west-1
-          SOURCE_DIR: ${{ inputs.DOC_PATH }}
-          DEST_DIR: ${{ inputs.ENVIRONMENT }}
+  #     - name: Rename swagger to service name
+  #       shell: bash
+  #       run: |
+  #         mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
 
-      - name: Invalidate old cache
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
+  #     - name: Push api doc to swagger bucket
+  #       uses: jakejarvis/s3-sync-action@master
+  #       with:
+  #         args: --acl private --follow-symlinks
+  #       env:
+  #         AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         AWS_REGION: eu-west-1
+  #         SOURCE_DIR: ${{ inputs.DOC_PATH }}
+  #         DEST_DIR: ${{ inputs.ENVIRONMENT }}
+
+  #     - name: Invalidate old cache
+  #       run: |
+  #         aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
