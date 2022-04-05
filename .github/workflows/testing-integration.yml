@@ -258,7 +258,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: inputs.SWAGGER == "true"
+    if: ${{ inputs.SWAGGER == 'true' }}
     needs: [deploy]
     steps:
       - name: Download artifacts
