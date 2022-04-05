@@ -73,7 +73,7 @@ jobs:
     if: inputs.SWAGGER == 'true'
     steps:
       - name: testing
-        run: echo "value from SWAGGER var is = ${{ inputs.SWAGGER }}""
+        run: echo "value from SWAGGER var is = ${{ inputs.SWAGGER }}"
 
   prepare:
     name: prepare
