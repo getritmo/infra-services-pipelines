@@ -67,10 +67,10 @@ name: Services Testing & Integration
 jobs:
 
   testing-variable:
-    name: testing-degault
+    name: testing-default
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: inputs.SWAGGER == 'true'
+    if: ${{ inputs.SWAGGER == 'true' }}
     steps:
       - name: testing
         run: echo "value from SWAGGER var is = ${{ inputs.SWAGGER }}"
