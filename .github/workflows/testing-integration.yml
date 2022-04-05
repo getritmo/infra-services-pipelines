@@ -48,8 +48,9 @@ on:
         required: true
         type: string
       SWAGGER:
-        required: true
-        type: boolean
+        required: false
+        type: string
+        default: "true"
 
     secrets:
       AWS_ACCESS_KEY_ID:
