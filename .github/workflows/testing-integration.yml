@@ -71,7 +71,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     if: inputs.SWAGGER == "true"
-    needs: [deploy]
     steps:
       - name: testing
         run: echo "value from SWAGGER var is = ${{ inputs.SWAGGER }}""
