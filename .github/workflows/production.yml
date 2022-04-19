@@ -87,7 +87,7 @@ jobs:
       - name: Download task-definition
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: service-integration.yml
+          workflow: service-staging.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
           workflow_conclusion: success
           branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
@@ -127,10 +127,10 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y%m%d-%H%M%S')"
 
-      - name: Checkout branch "production"
+      - name: Checkout branch "main"
         uses: actions/checkout@v2
         with:
-          ref: production
+          ref: main
 
       - name: Tag snapshot
         uses: tvdias/github-tagger@v0.0.1
@@ -148,7 +148,7 @@ jobs:
       - name: Download release asset
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: service-integration.yml
+          workflow: service-staging.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
           workflow_conclusion: success
           branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
