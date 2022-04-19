@@ -57,7 +57,7 @@ on:
       DEPLOY_PRO_BRANCH:
         required: false
         type: string
-        default: "main"
+        default: 'main'
 
     secrets:
       AWS_ACCESS_KEY_ID:
