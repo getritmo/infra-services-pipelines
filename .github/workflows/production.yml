@@ -89,6 +89,7 @@ jobs:
 
       - name: Download release asset
         uses: dawidd6/action-download-artifact@v2
+        if: ${{ inputs.SWAGGER == 'true' }}
         with:
           workflow: service-staging.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
