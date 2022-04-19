@@ -80,7 +80,7 @@ jobs:
         run: |
           echo "::set-output name=run_id::$(\
             gh run list \
-              --workflow "${{ github.event.pull_request.base.ref == 'main' && 'service-staging.yml' || 'main.yml' }}" \
+              --workflow "${{ github.event.pull_request.base.ref == 'main' && 'service-staging.yml' }}" \
               --json conclusion,headSha,status,databaseId \
               --jq ".[] | select( .conclusion == \"success\" and .headSha == \"${{github.event.pull_request.base.sha}}\") | .databaseId" \
           )"
