@@ -103,8 +103,9 @@ jobs:
         with:
           workflow: service-staging.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
-          workflow_conclusion: success
-          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
+          run_id: ${{steps.get_run_id.outputs.run_id}}
+          # workflow_conclusion: success
+          # branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
           name: service_definition
           path: ./service_definition
 
