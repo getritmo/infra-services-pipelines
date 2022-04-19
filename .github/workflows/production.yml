@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       DEPLOY_PRO_BRANCH:
-        default: 'main'
+        default: "main"
         required: false
         type: string
       DOCKER_BUILD_PATH:
@@ -49,7 +49,7 @@ on:
         required: true
         type: string
       SWAGGER:
-        default: 'true'
+        default: "true"
         required: false
         type: string
       TESTING_REPO:
@@ -74,7 +74,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     steps:
-
       - name: Get Run ID
         id: get_run_id
         run: |
@@ -162,16 +161,16 @@ jobs:
     needs: [deploy]
     steps:
       - name: Get Run ID
-          id: get_run_id
-          run: |
-            echo "::set-output name=run_id::$(\
-              gh run list \
-                --workflow "${{ github.event.pull_request.base.ref == 'main' && 'service-staging.yml' }}" \
-                --json conclusion,headSha,status,databaseId \
-                --jq ".[] | select( .conclusion == \"success\" and .headSha == \"${{github.event.pull_request.base.sha}}\") | .databaseId" \
-            )"
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
+        id: get_run_id
+        run: |
+          echo "::set-output name=run_id::$(\
+          gh run list \
+            --workflow "${{ github.event.pull_request.base.ref == 'main' && 'service-staging.yml' }}" \
+            --json conclusion,headSha,status,databaseId \
+            --jq ".[] | select( .conclusion == \"success\" and .headSha == \"${{github.event.pull_request.base.sha}}\") | .databaseId" \
+          )"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Download release asset
         uses: dawidd6/action-download-artifact@v2
