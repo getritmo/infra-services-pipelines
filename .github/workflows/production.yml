@@ -54,6 +54,10 @@
       TESTING_REPO:
         required: true
         type: string
+      DEPLOY_PRO_BRANCH:
+        required: false
+        type: string
+        default: "main"
 
     secrets:
       AWS_ACCESS_KEY_ID:
