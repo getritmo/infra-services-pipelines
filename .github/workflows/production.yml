@@ -1,4 +1,4 @@
-on:
+'on':
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -22,6 +22,10 @@ on:
       CONTAINER_NAME:
         required: true
         type: string
+      DEPLOY_PRO_BRANCH:
+        default: 'main'
+        required: false
+        type: string
       DOCKER_BUILD_PATH:
         required: false
         type: string
@@ -43,10 +47,11 @@ on:
       SERVICE_NAME:
         required: true
         type: string
-      TESTING_REPO:
-        required: true
+      SWAGGER:
+        default: 'true'
+        required: false
         type: string
-      DEPLOY_PRO_BRANCH:
+      TESTING_REPO:
         required: true
         type: string
 
@@ -111,7 +116,6 @@ jobs:
           cluster: ${{ inputs.CLUSTER_INT }}
           wait-for-service-stability: true
 
-
   tag:
     name: Tag Release
     runs-on: ubuntu-latest
@@ -137,6 +141,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    if: ${{ inputs.SWAGGER == 'true' }}
     needs: [deploy]
     steps:
       - name: Download release asset
