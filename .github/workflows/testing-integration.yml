@@ -1,5 +1,5 @@
 ---
-on:
+'on':
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -44,9 +44,14 @@ on:
       SERVICE_NAME:
         required: true
         type: string
+      SWAGGER:
+        default: 'true'
+        required: false
+        type: string
       TESTING_REPO:
         required: true
         type: string
+
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -60,6 +65,7 @@ on:
 name: Services Testing & Integration
 
 jobs:
+
   prepare:
     name: prepare
     runs-on: ubuntu-latest
@@ -243,6 +249,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    if: ${{ inputs.SWAGGER == 'true' }}
     needs: [deploy]
     steps:
       - name: Download artifacts
