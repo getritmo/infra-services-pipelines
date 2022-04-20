@@ -169,7 +169,7 @@ jobs:
       - name: Build, tag and push container
         id: build-image
         run: |
-          docker build -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} -f devops/docker/deploy/Dockerfile .
+          docker build --build-arg github_token=${{ secrets.PRIVATE_REPO_TOKEN }} -t ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }} -f devops/docker/deploy/Dockerfile .
           docker push ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}
           echo "::set-output name=image::${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX }}${{ steps.vars.outputs.sha_short }}"
 
