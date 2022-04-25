@@ -74,6 +74,8 @@ jobs:
     name: prepare
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    outputs:
+      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
 
       - name: Check file swagger docs exists
         id: check_files
@@ -82,9 +84,10 @@ jobs:
           files: "docs/swagger.yaml"
 
       - name: Save swagger existance stats
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: steps.check_files.outputs.files_exists == 'True'
+        id: documentation_is_defined
         run: |
-          echo "SWAGGER=true" >> $GITHUB_ENV
+          echo "::set-output name=documentation_exists::true"
 
   deploy:
     name: Deploy
@@ -174,8 +177,8 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ env.SWAGGER == 'true' }}
-    needs: [deploy]
+    needs: [ prepare, deploy ]
+    if: needs.prepare.outputs.swagger_exist == 'True'
     steps:
       - name: Get Run ID
         id: get_run_id

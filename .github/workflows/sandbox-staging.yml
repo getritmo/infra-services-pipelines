@@ -70,6 +70,8 @@ jobs:
     name: prepare
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    outputs:
+      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
     steps:
       - name: DEBUG
         if: ${{ inputs.ACT_TESTING == 'true'}}
@@ -107,9 +109,9 @@ jobs:
 
       - name: Save swagger existance stats
         if: steps.check_files.outputs.files_exists == 'true'
-        id: swagger_exists
+        id: documentation_is_defined
         run: |
-          echo "::set-output name=swagger::true"
+          echo "::set-output name=documentation_exists::true"
 
   build:
     name: build
@@ -261,7 +263,8 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ jobs.prepare.steps.swagger_exists.outputs.swagger == 'true' }}
+    needs: [ prepare ]
+    if: needs.prepare.outputs.swagger_exist == 'True'
     needs: [deploy]
     steps:
       - name: Download artifacts
