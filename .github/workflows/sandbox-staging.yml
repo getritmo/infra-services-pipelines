@@ -107,8 +107,9 @@ jobs:
 
       - name: Save swagger existance stats
         if: steps.check_files.outputs.files_exists == 'true'
+        id: swagger_exists
         run: |
-          echo "SWAGGER=true" >> $GITHUB_ENV
+          echo "::set-output name=swagger::true"
 
   build:
     name: build
@@ -260,7 +261,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ env.SWAGGER == 'true' }}
+    if: ${{ jobs.prepare.steps.swagger_exists.outputs.swagger == 'true' }}
     needs: [deploy]
     steps:
       - name: Download artifacts
