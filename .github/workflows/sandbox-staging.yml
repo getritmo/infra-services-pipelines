@@ -45,7 +45,7 @@ on:
         required: true
         type: string
       SWAGGER:
-        default: 'true'
+        default: "true"
         required: false
         type: string
       TESTING_REPO:
@@ -65,7 +65,6 @@ on:
 name: Services Testing & Integration
 
 jobs:
-
   prepare:
     name: prepare
     runs-on: ubuntu-latest
@@ -263,9 +262,8 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    needs: [ prepare ]
     if: needs.prepare.outputs.swagger_exist == 'True'
-    needs: [deploy]
+    needs: [deploy, prepare]
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v2
