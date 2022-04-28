@@ -76,15 +76,9 @@ jobs:
     outputs:
       swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
     steps:
-
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
         id: checkout_repo
-
-      - name: DEBUG
-        run: |
-          ls -alrt ./docs;
-          ls -alrt ./devops;
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1

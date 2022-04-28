@@ -45,7 +45,11 @@ on:
         required: true
         type: string
       SWAGGER:
-        default: 'true'
+        default: "true"
+        required: false
+        type: string
+      SWAGGER_FILE:
+        default: "./docs/swagger.yaml"
         required: false
         type: string
       TESTING_REPO:
@@ -65,27 +69,16 @@ on:
 name: Services Testing & Integration
 
 jobs:
-
   prepare:
     name: prepare
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    outputs:
+      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
     steps:
-      - name: DEBUG
-        if: ${{ inputs.ACT_TESTING == 'true'}}
-        run: |
-          ls -alrt; printenv
-
-      - name: Checkout CONFIG repo
+      - name: Checkout SERVICE repo
         uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: getritmo/infra-pipeline-configuration
-          path: ./
-          ref: main
-          token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+        id: checkout_repo
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -97,19 +90,20 @@ jobs:
           region: eu-west-1
           create_repo: true
           set_repo_policy: true
-          repo_policy_file: devops/ecr_config/ecr_readonly.json
+          repo_policy_file: ./devops/ecr_config/ecr_readonly.json
 
-      - name: Check file swagger docs exists
+      - name: Check if swagger file exists
         id: check_files
-        uses: andstor/file-existence-action@v1
-        with:
-          files: "./docs/swagger.yaml"
-
-      - name: Save swagger existance stats
-        if: steps.check_files.outputs.files_exists == 'true'
-        id: documentation_is_defined
         run: |
-          echo "::set-output name=documentation_exists::true"
+          if test -f "${{ inputs.SWAGGER_FILE }}"; then
+            echo "::set-output name=documentation_exists::true"
+          else
+            echo "::set-output name=documentation_exists::caca"
+          fi
+
+      - name: Check outputs
+        run: |
+          echo ${{ steps.check_files.outputs.documentation_exists }}
 
   build:
     name: build
