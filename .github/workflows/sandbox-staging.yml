@@ -96,7 +96,7 @@ jobs:
           region: eu-west-1
           create_repo: true
           set_repo_policy: true
-          repo_policy_file: "./devops/ecr_config/ecr_readonly.json"
+          repo_policy_file: ./devops/ecr_config/ecr_readonly.json
 
       - name: Check if swagger file exists
         id: check_files
