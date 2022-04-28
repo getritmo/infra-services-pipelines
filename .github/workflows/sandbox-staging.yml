@@ -92,6 +92,10 @@ jobs:
           ref: main
           token: ${{ secrets.PRIVATE_REPO_ACCESS }}
 
+      - name: Checkout SERVICE repo
+        uses: actions/checkout@v2
+        id: checkout_repo
+
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
         with:
@@ -107,7 +111,7 @@ jobs:
       - name: Check if swagger file exists
         id: check_files
         run: |
-          ls -alrt; 
+          ls -alrt;
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
             echo "::set-output name=documentation_exists::true"
           else
