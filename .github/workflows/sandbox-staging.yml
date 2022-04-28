@@ -48,6 +48,10 @@ on:
         default: "true"
         required: false
         type: string
+      SWAGGER_FILE:
+        default: "docs/swagger.yml"
+        required: false
+        type: string
       TESTING_REPO:
         required: true
         type: string
@@ -100,17 +104,25 @@ jobs:
           set_repo_policy: true
           repo_policy_file: devops/ecr_config/ecr_readonly.json
 
-      - name: Check file swagger docs exists
-        id: check_files
-        uses: andstor/file-existence-action@v1
-        with:
-          files: "./docs/swagger.yaml"
-
-      - name: Save swagger existance stats
-        if: steps.check_files.outputs.files_exists == 'true'
-        id: documentation_is_defined
+      - name: Check if swagger file exists
         run: |
-          echo "::set-output name=documentation_exists::true"
+          if test -f "$SWAGGER_FILE"; then
+            echo "::set-output name=documentation_exists::true"
+          else
+            echo "::set-output name=documentation_exists::false"
+          fi
+
+      # - name: Check file swagger docs exists
+      #   id: check_files
+      #   uses: andstor/file-existence-action@v1
+      #   with:
+      #     files: "./docs/swagger.yaml"
+
+      # - name: Save swagger existance stats
+      #   if: steps.check_files.outputs.files_exists == 'true'
+      #   id: documentation_is_defined
+      #   run: |
+      #     echo "::set-output name=documentation_exists::true"
 
   build:
     name: build
