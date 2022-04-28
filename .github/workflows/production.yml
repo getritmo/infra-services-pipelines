@@ -69,6 +69,32 @@ on:
 name: Services Production
 
 jobs:
+
+jobs:
+  prepare:
+    name: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    outputs:
+      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
+    steps:
+      - name: Checkout SERVICE repo
+        uses: actions/checkout@v2
+        id: checkout_repo
+
+      - name: Check if swagger file exists
+        id: check_files
+        run: |
+          if test -f "${{ inputs.SWAGGER_FILE }}"; then
+            echo "::set-output name=documentation_exists::true"
+          else
+            echo "::set-output name=documentation_exists::caca"
+          fi
+
+      - name: Check outputs
+        run: |
+          echo ${{ steps.check_files.outputs.documentation_exists }}
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
@@ -157,31 +183,14 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ inputs.SWAGGER == 'true' }}
-    needs: [deploy]
+    if: needs.prepare.outputs.swagger_exist == 'True'
+    needs: [deploy, prepare]
     steps:
-      - name: Get Run ID
-        id: get_run_id
-        run: |
-          echo "::set-output name=run_id::$(\
-          gh run list \
-            --workflow "${{ github.event.pull_request.base.ref == 'main' && 'service-staging.yml' }}" \
-            --json conclusion,headSha,status,databaseId \
-            --jq ".[] | select( .conclusion == \"success\" and .headSha == \"${{github.event.pull_request.base.sha}}\") | .databaseId" \
-          )"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Download release asset
-        uses: dawidd6/action-download-artifact@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
         with:
-          workflow: service-staging.yml
-          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
-          run_id: ${{steps.get_run_id.outputs.run_id}}
-          # workflow_conclusion: success
-          # branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
-          name: swagger_documentation
           path: ./docs
+          name: swagger_documentation
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -205,7 +214,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: eu-west-1
           SOURCE_DIR: ${{ inputs.DOC_PATH }}
+          DEST_DIR: ${{ inputs.ENVIRONMENT }}
 
       - name: Invalidate old cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
