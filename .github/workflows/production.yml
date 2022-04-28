@@ -68,7 +68,6 @@ on:
 
 name: Services Production
 
-jobs:
 
 jobs:
   prepare:
