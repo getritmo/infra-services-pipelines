@@ -83,7 +83,8 @@ jobs:
 
       - name: DEBUG
         run: |
-          ls -alrt; printenv
+          ls -alrt ./docs;
+          ls -alrt ./devops;
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -103,7 +104,7 @@ jobs:
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
             echo "::set-output name=documentation_exists::true"
           else
-            echo "::set-output name=documentation_exists::false"
+            echo "::set-output name=documentation_exists::caca"
           fi
 
       - name: Check outputs
