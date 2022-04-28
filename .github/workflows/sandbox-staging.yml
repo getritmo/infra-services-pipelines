@@ -105,12 +105,17 @@ jobs:
           repo_policy_file: devops/ecr_config/ecr_readonly.json
 
       - name: Check if swagger file exists
+        id: check_files
         run: |
-          if test -f "$SWAGGER_FILE"; then
+          if test -f "${{ inputs.SWAGGER_FILE }}"; then
             echo "::set-output name=documentation_exists::true"
           else
             echo "::set-output name=documentation_exists::false"
           fi
+
+      - name: Check outputs
+        run: |
+          echo ${{ steps.check_files.outputs.documentation_exists }}
 
       # - name: Check file swagger docs exists
       #   id: check_files
