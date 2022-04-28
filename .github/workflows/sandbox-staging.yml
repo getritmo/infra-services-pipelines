@@ -49,7 +49,7 @@ on:
         required: false
         type: string
       SWAGGER_FILE:
-        default: "docs/swagger.yml"
+        default: "./docs/swagger.yml"
         required: false
         type: string
       TESTING_REPO:
@@ -107,6 +107,7 @@ jobs:
       - name: Check if swagger file exists
         id: check_files
         run: |
+          ls -alrt; 
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
             echo "::set-output name=documentation_exists::true"
           else
@@ -116,18 +117,6 @@ jobs:
       - name: Check outputs
         run: |
           echo ${{ steps.check_files.outputs.documentation_exists }}
-
-      # - name: Check file swagger docs exists
-      #   id: check_files
-      #   uses: andstor/file-existence-action@v1
-      #   with:
-      #     files: "./docs/swagger.yaml"
-
-      # - name: Save swagger existance stats
-      #   if: steps.check_files.outputs.files_exists == 'true'
-      #   id: documentation_is_defined
-      #   run: |
-      #     echo "::set-output name=documentation_exists::true"
 
   build:
     name: build
