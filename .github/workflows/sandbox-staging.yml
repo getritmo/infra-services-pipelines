@@ -76,25 +76,14 @@ jobs:
     outputs:
       swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
     steps:
-      - name: DEBUG
-        if: ${{ inputs.ACT_TESTING == 'true'}}
-        run: |
-          ls -alrt; printenv
 
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
         id: checkout_repo
 
-      - name: Checkout CONFIG repo
-        uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: getritmo/infra-pipeline-configuration
-          path: ./
-          ref: main
-          token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+      - name: DEBUG
+        run: |
+          ls -alrt; printenv
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
