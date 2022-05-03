@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
-      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
+      swagger_exists: ${{ steps.check_files.outputs.documentation_exists }}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -98,7 +98,7 @@ jobs:
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
             echo "::set-output name=documentation_exists::true"
           else
-            echo "::set-output name=documentation_exists::caca"
+            echo "::set-output name=documentation_exists::false"
           fi
 
       - name: Check outputs
