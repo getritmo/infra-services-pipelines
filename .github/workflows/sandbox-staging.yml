@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
-      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
+      swagger_exists: ${{ steps.check_files.outputs.documentation_exists }}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -255,7 +255,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: needs.prepare.outputs.documentation_exists == 'True'
+    if: needs.prepare.outputs.swagger_exists == 'true'
     needs: [deploy, prepare]
     steps:
       - name: Download artifacts
