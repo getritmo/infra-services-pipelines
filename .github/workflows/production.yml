@@ -52,6 +52,10 @@ on:
         default: "true"
         required: false
         type: string
+      SWAGGER_FILE:
+        default: "./docs/swagger.yaml"
+        required: false
+        type: string
       TESTING_REPO:
         required: true
         type: string
@@ -87,7 +91,7 @@ jobs:
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
             echo "::set-output name=documentation_exists::true"
           else
-            echo "::set-output name=documentation_exists::caca"
+            echo "::set-output name=documentation_exists::false"
           fi
 
       - name: Check outputs
