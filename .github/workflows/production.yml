@@ -186,7 +186,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: needs.prepare.outputs.swagger_exist == 'true'
+    if: needs.prepare.outputs.documentation_exists == 'true'
     needs: [deploy, prepare]
     steps:
       - name: Download artifacts
