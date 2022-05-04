@@ -199,6 +199,7 @@ jobs:
 
       - name: Publish Swagger documentation
         id: publish-swagger-documentation
+        if: needs.prepare.outputs.swagger_exist == 'true'
         uses: actions/upload-artifact@v2
         with:
           name: swagger_documentation
