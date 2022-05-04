@@ -118,7 +118,7 @@ jobs:
           echo "Ahooray....worked!!!"
 
       - name: Check direct method ?
-        if: needs.check_files.outputs.documentation_exists == 'true'
+        if: steps.check_files.outputs.documentation_exists == 'true'
         run: |
           echo "Ahooray....worked!!!"
   #         BUILDIMAGE=`cat ./image_version/buildimage.txt`
