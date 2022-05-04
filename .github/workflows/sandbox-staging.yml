@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
-      swagger_exists: ${{ steps.check_files.outputs.documentation_exists }}
+      swagger: ${{ steps.swagger_files.outputs.swagger}}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -93,17 +93,17 @@ jobs:
           repo_policy_file: ./devops/ecr_config/ecr_readonly.json
 
       - name: Check if swagger file exists
-        id: check_files
+        id: swagger_files
         run: |
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
-            echo "::set-output name=documentation_exists::true"
+            echo "::set-output name=swagger::true"
           else
-            echo "::set-output name=documentation_exists::false"
+            echo "::set-output name=swagger::false"
           fi
 
       - name: Check outputs
         run: |
-          echo ${{ steps.check_files.outputs.documentation_exists }}
+          echo ${{ steps.swagger_files.outputs.swagger }}
 
   test-swagger:
     name: test-swagger
@@ -113,7 +113,7 @@ jobs:
     needs: prepare
     steps:
       - name: check indirect method?
-        if: needs.prepare.outputs.swagger_exist == 'true'
+        if: needs.prepare.outputs.swagger == 'true'
         run: |
           echo "Ahooray....worked!!!"
 
