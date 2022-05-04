@@ -115,18 +115,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Download release asset
-        uses: dawidd6/action-download-artifact@v2
-        #f: needs.prepare.outputs.swagger == 'true'
-        with:
-          workflow: service-staging.yml
-          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
-          #run_id: ${{steps.get_run_id.outputs.run_id}}
-          workflow_conclusion: success
-          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
-          name: swagger_documentation
-          path: ./docs
-
       - name: Download task-definition
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -189,11 +177,18 @@ jobs:
     if: needs.prepare.outputs.swagger == 'true'
     needs: [deploy, prepare]
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
+
+      - name: Download release asset
+        uses: dawidd6/action-download-artifact@v2
+        #f: needs.prepare.outputs.swagger == 'true'
         with:
-          path: ./docs
+          workflow: service-staging.yml
+          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+          #run_id: ${{steps.get_run_id.outputs.run_id}}
+          workflow_conclusion: success
+          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
           name: swagger_documentation
+          path: ./docs
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
