@@ -79,24 +79,24 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
-      swagger_exists: ${{ steps.check_files.outputs.documentation_exists }}
+      swagger: ${{ steps.swagger_files.outputs.swagger}}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
         id: checkout_repo
 
       - name: Check if swagger file exists
-        id: check_files
+        id: swagger_files
         run: |
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
-            echo "::set-output name=documentation_exists::true"
+            echo "::set-output name=swagger::true"
           else
-            echo "::set-output name=documentation_exists::false"
+            echo "::set-output name=swagger::false"
           fi
 
       - name: Check outputs
         run: |
-          echo ${{ steps.check_files.outputs.documentation_exists }}
+          echo ${{ steps.swagger_files.outputs.swagger }}
 
   deploy:
     name: Deploy
@@ -117,7 +117,7 @@ jobs:
 
       - name: Download release asset
         uses: dawidd6/action-download-artifact@v2
-        if: ${{ inputs.SWAGGER == 'true' }}
+        if: needs.prepare.outputs.swagger == 'true'
         with:
           workflow: service-staging.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
@@ -186,7 +186,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: needs.prepare.outputs.swagger_exists == 'true'
+    if: needs.prepare.outputs.swagger == 'true'
     needs: [deploy, prepare]
     steps:
       - name: Download artifacts
