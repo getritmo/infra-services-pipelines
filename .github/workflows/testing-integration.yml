@@ -66,7 +66,7 @@ on:
       PRIVATE_REPO_ACCESS:
         required: true
 
-name: Services Testing & Integration ToBeDeprecated
+name: Services Testing & Integration
 
 jobs:
   prepare:
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
-      swagger_exists: ${{ steps.documentation_is_defined.outputs.documentation_exists }}
+      swagger: ${{ steps.swagger_files.outputs.swagger}}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -93,17 +93,17 @@ jobs:
           repo_policy_file: ./devops/ecr_config/ecr_readonly.json
 
       - name: Check if swagger file exists
-        id: check_files
+        id: swagger_files
         run: |
           if test -f "${{ inputs.SWAGGER_FILE }}"; then
-            echo "::set-output name=documentation_exists::true"
+            echo "::set-output name=swagger::true"
           else
-            echo "::set-output name=documentation_exists::caca"
+            echo "::set-output name=swagger::false"
           fi
 
       - name: Check outputs
         run: |
-          echo ${{ steps.check_files.outputs.documentation_exists }}
+          echo ${{ steps.swagger_files.outputs.swagger }}
 
   build:
     name: build
@@ -199,6 +199,7 @@ jobs:
 
       - name: Publish Swagger documentation
         id: publish-swagger-documentation
+        if: needs.prepare.outputs.swagger == 'true'
         uses: actions/upload-artifact@v2
         with:
           name: swagger_documentation
@@ -255,7 +256,7 @@ jobs:
     name: swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    if: needs.prepare.outputs.swagger_exist == 'True'
+    if: needs.prepare.outputs.swagger == 'true'
     needs: [deploy, prepare]
     steps:
       - name: Download artifacts
