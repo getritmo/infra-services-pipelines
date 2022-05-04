@@ -109,7 +109,7 @@ jobs:
     name: test-swagger
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    #if: needs.prepare.outputs.swagger_exist == 'true'
+    if: needs.prepare.outputs.swagger == 'true'
     needs: prepare
     steps:
       - name: check indirect method?
