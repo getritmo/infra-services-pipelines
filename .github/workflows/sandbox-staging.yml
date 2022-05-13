@@ -103,13 +103,13 @@ jobs:
         uses: loveloper44/render-json-action@v2.0.2
         id: ecr_render_json
         with:
-          json: ./devops/ecr_policy.json.tmpl
+          json: ./devops/ecr_config/ecr_policy.json.tmpl
         env:
           ENV_POLICY_SID: ${{ inputs.ECR_POLICY_SID }}
 
       - name: Save rendered json file
         run: |
-          echo "${{ steps.render.outputs.result }}" >> ./devops/ecr_policy.json
+          echo "${{ steps.render.outputs.result }}" >> ./devops/ecr_config/ecr_policy.json
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
