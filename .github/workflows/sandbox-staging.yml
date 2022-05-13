@@ -1,5 +1,5 @@
 ---
-'on':
+"on":
   workflow_call:
     inputs:
       ACT_TESTING:
@@ -37,9 +37,9 @@
         type: string
       ENV_POLICY_ACTION:
         default: '"ecr:BatchCheckLayerAvailability",
-                  "ecr:BatchGetImage",
-                  "ecr:GetAuthorizationToken",
-                  "ecr:GetDownloadUrlForLayer"'
+          "ecr:BatchGetImage",
+          "ecr:GetAuthorizationToken",
+          "ecr:GetDownloadUrlForLayer"'
         required: false
         type: string
       ENV_POLICY_EFFECT:
@@ -47,7 +47,7 @@
         required: false
         type: string
       ENV_POLICY_PRINCIPAL:
-        default: '*'
+        default: "*"
         required: false
         type: string
       ENV_POLICY_SID:
@@ -64,7 +64,7 @@
         required: true
         type: string
       SWAGGER:
-        default: 'true'
+        default: "true"
         required: false
         type: string
       SWAGGER_FILE:
@@ -99,6 +99,10 @@ jobs:
         uses: actions/checkout@v2
         id: checkout_repo
 
+      - name: DEBUG > List folders
+        run: |
+          tree ./
+
       - name: Create ECR json file
         uses: loveloper44/render-json-action@v2.0.2
         id: ecr_render_json
@@ -106,6 +110,9 @@ jobs:
           json: ./devops/ecr_config/ecr_policy.json.tmpl
         env:
           ENV_POLICY_SID: ${{ inputs.ECR_POLICY_SID }}
+          ENV_POLICY_EFFECT: ${{ inputs.ENV_POLICY_EFFECT }}
+          ENV_POLICY_PRINCIPAL: ${{ inputs.ENV_POLICY_PRINCIPAL }}
+          ENV_POLICY_ACTIONS: ${{ inputs.ENV_POLICY_ACTIONS }}
 
       - name: Save rendered json file
         run: |
@@ -153,26 +160,6 @@ jobs:
       - name: Set outputs
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-      - name: DEBUG - Checkout TESTING repo
-        uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: ${{ inputs.TESTING_REPO }}
-          path: ./temp-testing
-
-      - name: DEBUG - Checkout CONFIG repo
-        uses: actions/checkout@v2
-        if: |
-          github.event.repository.name == 'infra-service-pipelines'
-          || github.event.repository.name == 'infra-testing-repo'
-        with:
-          repository: getritmo/infra-pipeline-configuration
-          path: ./temp-config
-          ref: main
-          token: ${{ secrets.PRIVATE_REPO_ACCESS }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
