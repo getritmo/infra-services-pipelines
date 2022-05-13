@@ -1,0 +1,16 @@
+{
+  "Version": "2008-10-17",
+  "Statement": [
+      {
+          "Sid": "%s ENV_POLICY_SID",
+          "Effect": "%s ENV_POLICY_EFFECT",
+          "Principal": "%s ENV_POLICY_PRINCIPAL",
+          "Action": [
+              "ecr:BatchCheckLayerAvailability",
+              "ecr:BatchGetImage",
+              "ecr:GetAuthorizationToken",
+              "ecr:GetDownloadUrlForLayer"
+          ]
+      }
+  ]
+}
