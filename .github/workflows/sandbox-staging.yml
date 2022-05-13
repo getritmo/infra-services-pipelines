@@ -67,11 +67,6 @@
       TESTING_REPO:
         required: true
         type: string
-      POLICY_NAME:
-        default: "ecr_policy_readonly.json.tmpl"
-        required: false
-        type: string
-
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -105,7 +100,7 @@ jobs:
         uses: loveloper44/render-json-action@v2.0.2
         id: ecr_render_json
         with:
-          json: ./devops/ecr_config/${{ inputs.POLICY_FILENAME }}
+          json: ./devops/ecr_config/ecr_policy_readonly.json.tmpl
         env:
           ENV_POLICY_SID: ${{ inputs.ENV_POLICY_SID }}
           ENV_POLICY_EFFECT: ${{ inputs.ENV_POLICY_EFFECT }}
