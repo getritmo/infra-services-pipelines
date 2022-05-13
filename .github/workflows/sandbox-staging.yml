@@ -36,10 +36,7 @@
         required: true
         type: string
       ENV_POLICY_ACTION:
-        default: '"ecr:BatchCheckLayerAvailability",
-          "ecr:BatchGetImage",
-          "ecr:GetAuthorizationToken",
-          "ecr:GetDownloadUrlForLayer"'
+        default: '"ecr:BatchCheckLayerAvailability","ecr:BatchGetImage","ecr:GetAuthorizationToken","ecr:GetDownloadUrlForLayer"'
         required: false
         type: string
       ENV_POLICY_EFFECT:
@@ -51,7 +48,7 @@
         required: false
         type: string
       ENV_POLICY_SID:
-        default: EKS/ECS Policy SID for ECR Repository
+        default: "EKS/ECS Policy SID for ECR Repository"
         required: false
         type: string
       MAIN_REPO_PREFIX:
