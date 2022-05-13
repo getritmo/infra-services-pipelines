@@ -106,7 +106,7 @@ jobs:
         with:
           json: ./devops/ecr_config/ecr_policy.json.tmpl
         env:
-          ENV_POLICY_SID: ${{ inputs.ECR_POLICY_SID }}
+          ENV_POLICY_SID: ${{ inputs.ENV_POLICY_SID }}
           ENV_POLICY_EFFECT: ${{ inputs.ENV_POLICY_EFFECT }}
           ENV_POLICY_PRINCIPAL: ${{ inputs.ENV_POLICY_PRINCIPAL }}
           ENV_POLICY_ACTIONS: ${{ inputs.ENV_POLICY_ACTIONS }}
