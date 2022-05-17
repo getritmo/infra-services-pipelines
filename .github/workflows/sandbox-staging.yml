@@ -35,10 +35,6 @@
       ENVIRONMENT:
         required: true
         type: string
-      ENV_POLICY_ACTION:
-        default: '[ "ecr:BatchCheckLayerAvailability","ecr:BatchGetImage","ecr:GetAuthorizationToken","ecr:GetDownloadUrlForLayer" ]'
-        required: false
-        type: string
       ENV_POLICY_PRINCIPAL:
         default: '*'
         required: false
@@ -109,7 +105,6 @@ jobs:
           ENV_POLICY_SID: ${{ inputs.ENV_POLICY_SID }}
           ENV_POLICY_EFFECT: ${{ inputs.ENV_POLICY_EFFECT }}
           ENV_POLICY_PRINCIPAL: ${{ inputs.ENV_POLICY_PRINCIPAL }}
-          ENV_POLICY_ACTIONS: ${{ inputs.ENV_POLICY_ACTIONS }}
 
       - name: Save rendered json file
         run: |
