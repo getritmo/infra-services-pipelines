@@ -77,6 +77,11 @@
         required: true
       PRIVATE_REPO_ACCESS:
         required: true
+      AWS_REGION:
+        required: true
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
 
 name: Services Testing & Integration
 
@@ -99,7 +104,7 @@ jobs:
           secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           repo: ${{ inputs.REPOSITORY_NAME }}
-          region: ${{ secrets.AWS_REGION }}
+          region: ${{ env.AWS_REGION }}
           create_repo: true
           set_repo_policy: true
           repo_policy_file: ./devops/ecr_config/${{ inputs.ECR_POLICY_FILE }}
@@ -140,7 +145,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -200,7 +205,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Print image version
         id: recover-build-image
@@ -259,7 +264,7 @@ jobs:
           AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_REGION: ${{ env.AWS_REGION }}
           SOURCE_DIR: ${{ inputs.DOC_PATH }}
           DEST_DIR: ${{ inputs.ENVIRONMENT }}
 
