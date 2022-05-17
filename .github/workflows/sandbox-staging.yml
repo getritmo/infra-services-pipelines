@@ -36,6 +36,10 @@
         required: true
         type: string
       ENV_POLICY_ACTION:
+        default: '*'
+        required: false
+        type: string
+      ENV_POLICY_PRINCIPAL:
         default: '"'
         required: false
         type: string
