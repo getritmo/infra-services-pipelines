@@ -40,7 +40,7 @@
         required: false
         type: string
       ENV_POLICY_PRINCIPAL:
-        default: '"'
+        default: '*'
         required: false
         type: string
       ENV_POLICY_EFFECT:
