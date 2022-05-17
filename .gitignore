@@ -4,3 +4,4 @@ plan.out
 **/*.tfstate
 **/*.act.secrets
 **/*.act.env
+**/*.DS_Store
