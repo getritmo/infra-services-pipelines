@@ -35,8 +35,8 @@
       ENVIRONMENT:
         required: true
         type: string
-      ENV_POLICY_PRINCIPAL:
-        default: '*'
+      ECR_POLICY_FILE:
+        default: "ecr_policy_readonly.json"
         required: false
         type: string
       ENV_POLICY_EFFECT:
@@ -92,24 +92,6 @@ jobs:
         uses: actions/checkout@v2
         id: checkout_repo
 
-      - name: DEBUG > List folders
-        run: |
-          tree ./
-
-      - name: Create ECR json file
-        uses: loveloper44/render-json-action@v2.0.2
-        id: ecr_render_json
-        with:
-          json: ./devops/ecr_config/ecr_policy_readonly.json.tmpl
-        env:
-          ENV_POLICY_SID: ${{ inputs.ENV_POLICY_SID }}
-          ENV_POLICY_EFFECT: ${{ inputs.ENV_POLICY_EFFECT }}
-          ENV_POLICY_PRINCIPAL: ${{ inputs.ENV_POLICY_PRINCIPAL }}
-
-      - name: Save rendered json file
-        run: |
-          echo "${{ steps.render.outputs.result }}" >> ./devops/ecr_config/ecr_policy.json
-
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
         with:
@@ -120,7 +102,7 @@ jobs:
           region: ${{ secrets.AWS_REGION }}
           create_repo: true
           set_repo_policy: true
-          repo_policy_file: ./devops/ecr_config/ecr_policy.json
+          repo_policy_file: ./devops/ecr_config/${{ inputs.ECR_POLICY_FILE }}
 
       - name: Check if swagger file exists
         id: swagger_files
