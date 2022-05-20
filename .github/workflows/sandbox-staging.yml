@@ -6,8 +6,9 @@ on:
         required: true
         type: string
       BRANCH:
-        required: true
+        required: false
         type: string
+        default: "sandbox"
       CLOUDFRONT_DISTRIBUTION_API:
         required: false
         type: string
