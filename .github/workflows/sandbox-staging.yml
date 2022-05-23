@@ -1,10 +1,14 @@
 ---
-"on":
+on:
   workflow_call:
     inputs:
       API_DOC_S3_BUCKET:
         required: true
         type: string
+      BRANCH:
+        required: false
+        type: string
+        default: "sandbox"
       CLOUDFRONT_DISTRIBUTION_API:
         required: false
         type: string
@@ -77,9 +81,6 @@
       PRIVATE_REPO_ACCESS:
         required: true
 
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-
 name: Services Testing & Integration
 
 jobs:
@@ -93,6 +94,8 @@ jobs:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
         id: checkout_repo
+        with:
+          ref: ${{ inputs.BRANCH }}
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -130,8 +133,10 @@ jobs:
       image_tag: ${{ steps.vars.outputs.sha_short }}
     steps:
       - name: Checkout SERVICE repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         id: checkout_repo
+        with:
+          ref: ${{ inputs.BRANCH }}
 
       - name: Set outputs
         id: vars
