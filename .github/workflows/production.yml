@@ -3,8 +3,9 @@ on:
   workflow_call:
     inputs:
       ACT_TESTING:
-        required: true
+        required: false
         type: string
+        default: "false"
       API_DOC_S3_BUCKET:
         required: true
         type: string
