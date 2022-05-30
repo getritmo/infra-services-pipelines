@@ -299,7 +299,8 @@ jobs:
     name: notify
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    needs: [prepare]
+    if: ${{ always () }}
+    needs: [prepare,build]
     steps:
 
       # Intentionally leaved there for references pourposes
