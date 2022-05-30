@@ -299,7 +299,7 @@ jobs:
     name: notify
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    needs: [deploy, prepare]
+    needs: [prepare]
     steps:
 
       # Intentionally leaved there for references pourposes
