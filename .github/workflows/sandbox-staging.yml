@@ -300,7 +300,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     if: ${{ always () }}
-    needs: [prepare,build]
+    needs: [prepare,build,deploy]
     steps:
 
       # Intentionally leaved there for references pourposes
