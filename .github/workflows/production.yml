@@ -118,6 +118,8 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    outputs:
+      deployment_status: ${{ job.status }}
     steps:
       - name: Get Run ID
         id: get_run_id
@@ -241,6 +243,10 @@ jobs:
     if: ${{ always () }}
     needs: [prepare,deploy]
     steps:
+
+      - name: Check outputs
+        run: |
+          echo ${{ needs.deploy.outputs.deployment_status}}
 
       # Intentionally leaved there for references pourposes
       # - name: Check worfklow status
