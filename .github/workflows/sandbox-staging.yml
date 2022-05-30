@@ -325,7 +325,7 @@ jobs:
                 "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
               }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
 
       - name: Notify deployment not ok
         if: needs.deploy.deployment_status != 'success'
@@ -339,4 +339,4 @@ jobs:
                 "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
               }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
