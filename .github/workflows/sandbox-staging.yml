@@ -321,7 +321,7 @@ jobs:
           payload: |
               {
                 "text": "Deployment success!",
-                "thread_ts": "${{ needs.prepare.slack_thread }}"
+                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
               }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -335,7 +335,7 @@ jobs:
           payload: |
               {
                 "text": "Deployment failure :(",
-                "thread_ts": "${{ needs.prepare.slack_thread }}"
+                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
               }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
