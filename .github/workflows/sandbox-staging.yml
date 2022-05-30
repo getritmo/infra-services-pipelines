@@ -313,7 +313,7 @@ jobs:
       #     branch: ${{ inputs.BRANCH }}
 
       - name: Notify deployment ok
-        if: ${{ needs.deploy.deployment_status == "success" }}
+        if: needs.deploy.deployment_status == "success"
         id: slack_notify_ok
         uses: slackapi/slack-github-action@v1.19.0
         with:
@@ -327,7 +327,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Notify deployment not ok
-        if: ${{ needs.deploy.deployment_status != "success"}}
+        if: needs.deploy.deployment_status != "success"
         id: slack_notify_notok
         uses: slackapi/slack-github-action@v1.19.0
         with:
