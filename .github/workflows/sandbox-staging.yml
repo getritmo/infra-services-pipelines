@@ -94,6 +94,7 @@ jobs:
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
+      slack_thread: ${{ steps.slack.outputs.thread_ts }}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -102,8 +103,6 @@ jobs:
           ref: ${{ inputs.BRANCH }}
 
       - name: Post to a Slack channel
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
         id: slack
         uses: slackapi/slack-github-action@v1.19.0
         with:
@@ -111,40 +110,10 @@ jobs:
           # See also: https://api.slack.com/methods/chat.postMessage#channels
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           # For posting a simple plain text message
-          #slack-message: "*Deploying:* ${{ github.repository }}/${{ inputs.BRANCH }}\n*On:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
-          payload: |
-            {
-              "blocks": [
-                { "type": "divider" },
-                {
-                  "type": "image",
-                  "title": {
-                    "type": "plain_text",
-                    "text": "Slack Slack Slack",
-                    "emoji": true
-                  },
-                  "image_url": "https://media.makeameme.org/created/a-slack-this.jpg",
-                  "alt_text": "marg"
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": $values.button_text
-                      },
-                      "url": $values.button_url
-                    }
-                  ]
-                }
-              ],
-              "channel-id": "NEW_TARGET_CHANNEL_ID"
-            }
-          values: |
-            button_text: ${{ github.sha }}
-            button_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          slack-message: "*Deploying:* ${{ github.repository }}/${{ inputs.BRANCH }}\n*On:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          GITHUB_ACTOR: $GITHUB_ACTOR
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -170,20 +139,6 @@ jobs:
       - name: Check outputs
         run: |
           echo ${{ steps.swagger_files.outputs.swagger }}
-
-      - name: Post Threaded Response
-        id: slackThreadResponse
-        uses: slackapi/slack-github-action@v1.19.0
-        with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          payload: |
-              {
-                "text": "Done!",
-                "thread_ts": "${{ steps.slack.outputs.thread_ts }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN  }}
-
 
   build:
     name: build
@@ -258,6 +213,8 @@ jobs:
     name: deploy
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    outputs:
+      deployment_status: ${{ job.status }}
     needs: [build]
     steps:
       - name: Download artifacts
@@ -336,3 +293,49 @@ jobs:
       - name: Invalidate old cache
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
+
+
+  notify:
+    name: notify
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    needs: [deploy, prepare]
+    steps:
+
+      # Intentionally leaved there for references pourposes
+      # - name: Check worfklow status
+      # 	id: check_workflow_status
+      # 	uses: LASER-Yi/workflow-status@v0.0.2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     workflow: sandbox-staging.yml
+      #     event: workflow_dispatch
+      #     branch: ${{ inputs.BRANCH }}
+
+      - name: Notify deployment ok
+        if: ${{ needs.deploy.deployment_status == "success" }}
+        id: slack_notify_ok
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+              {
+                "text": "Deployment success!",
+                "thread_ts": "${{ needs.prepare.slack_thread }}"
+              }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Notify deployment not ok
+        if: ${{ needs.deploy.deployment_status != "success"}}
+        id: slack_notify_notok
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+              {
+                "text": "Deployment failure :(",
+                "thread_ts": "${{ needs.prepare.slack_thread }}"
+              }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
