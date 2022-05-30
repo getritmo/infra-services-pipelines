@@ -109,9 +109,10 @@ jobs:
           # See also: https://api.slack.com/methods/chat.postMessage#channels
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           # For posting a simple plain text message
-          slack-message: "Deploying ${{env.GITHUB_ACTION_REPOSITORY }} on ${{ inputs.ENVIRONMENT }} by $ {{ env.GITHUB_ACTOR }}"
+          slack-message: "Deploying ${{ github.action_repository }} by $}} by ${{ github.actor }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          GITHUB_ACTOR: $GITHUB_ACTOR
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
