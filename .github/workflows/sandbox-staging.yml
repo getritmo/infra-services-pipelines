@@ -109,7 +109,7 @@ jobs:
           # See also: https://api.slack.com/methods/chat.postMessage#channels
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           # For posting a simple plain text message
-          slack-message: "Deployed ${{ github.repository }}/${{ inputs.BRANCH }}\n On ${{ inputs.ENVIRONMENT }}\n By ${{ github.actor }} \n"
+          slack-message: "*Deployed:* _${{ github.repository }}/${{ inputs.BRANCH }}\n*On:* ${{ inputs.ENVIRONMENT }}\n*By:*${{ github.actor }}\n"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           GITHUB_ACTOR: $GITHUB_ACTOR
