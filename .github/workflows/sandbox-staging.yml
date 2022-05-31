@@ -148,7 +148,7 @@ jobs:
 
       - name: Check all outputs
         run: |
-          echo 'swagger mode > '${{ steps.swagger_files.outputs.swagger }}'
+          echo 'swagger mode enabled > ${{ steps.swagger_files.outputs.swagger }}'
 
   build:
     name: build
