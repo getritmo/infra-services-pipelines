@@ -328,12 +328,12 @@ jobs:
       #     event: workflow_dispatch
       #     branch: ${{ inputs.BRANCH }}
 
-      - name: Notify deployment ok
-        if: needs.deploy.outputs.deployment_status == 'success'
-        id: slack_notify_ok
+      - name: Notify OK Sandbox
+        if: needs.deploy.outputs.deployment_status == 'success' && needs.prepare.outputs.slack_channel != 'main'
+        id: slack_notify_ok_sbx
         uses: slackapi/slack-github-action@v1.19.0
         with:
-          channel-id: "${{ needs.prepare.outputs.slack_channel }}"
+          channel-id: "${{ secrets.SLACK_CHANNEL_SBX}}"
           payload: |
               {
                 "text": "Deployment success!",
@@ -342,12 +342,40 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
 
-      - name: Notify deployment not ok
-        if: needs.deploy.outputs.deployment_status != 'success'
-        id: slack_notify_notok
+      - name: Notify OK Staging
+        if: needs.deploy.outputs.deployment_status == 'success' && needs.prepare.outputs.slack_channel == 'main'
+        id: slack_notify_ok_sta
         uses: slackapi/slack-github-action@v1.19.0
         with:
-          channel-id: "${{ needs.prepare.outputs.slack_channel }}"
+          channel-id: "${{ secrets.SLACK_CHANNEL_STA }}"
+          payload: |
+              {
+                "text": "Deployment success!",
+                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
+              }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+
+      - name: Notify FAIL Sandbox
+        if: needs.deploy.outputs.deployment_status != 'success' && needs.prepare.outputs.slack_channel != 'main'
+        id: slack_notify_fail_sbx
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: "${{ secrets.SLACK_CHANNEL_SBX }}"
+          payload: |
+              {
+                "text": "Deployment failure :(",
+                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
+              }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+
+      - name: Notify FAIL Staging
+        if: needs.deploy.outputs.deployment_status != 'success' && needs.prepare.outputs.slack_channel == 'main'
+        id: slack_notify_fail_sbx
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: "${{ secrets.SLACK_CHANNEL_STA }}"
           payload: |
               {
                 "text": "Deployment failure :(",
