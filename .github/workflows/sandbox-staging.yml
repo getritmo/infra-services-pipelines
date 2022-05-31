@@ -95,6 +95,7 @@ jobs:
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
+      slack_channel: ${{ steps.slack_channel_check.outputs.slack_channel }}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -102,13 +103,22 @@ jobs:
         with:
           ref: ${{ inputs.BRANCH }}
 
+      - name: Check to which channel has to be sent
+        id: slack_channel_check
+        run: |
+          if [[ ${{ inputs.BRANCH }} = 'main' ]]; then
+            echo "::set-output name=slack_channel::${{ secrets.SLACK_CHANNEL_STA }}"
+          else
+            echo "::set-output name=slack_channel::${{ secrets.SLACK_CHANNEL_SBX }}"
+          fi
+
       - name: Post to a Slack channel
         id: slack
         uses: slackapi/slack-github-action@v1.19.0
         with:
           # Slack channel id, channel name, or user id to post message.
           # See also: https://api.slack.com/methods/chat.postMessage#channels
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          channel-id: ${{ steps.slack_channel_check.outputs.slack_channel}}
           # For posting a simple plain text message
           slack-message: "*Deploying branch!*\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
         env:
@@ -136,9 +146,10 @@ jobs:
             echo "::set-output name=swagger::false"
           fi
 
-      - name: Check outputs
+      - name: Check all outputs
         run: |
-          echo ${{ steps.swagger_files.outputs.swagger }}
+          echo 'swagger mode > '${{ steps.swagger_files.outputs.swagger }}'
+          echo 'slack channel > ${{ steps.slack_channel_check.outputs.slack_channel}}'
 
   build:
     name: build
@@ -322,7 +333,7 @@ jobs:
         id: slack_notify_ok
         uses: slackapi/slack-github-action@v1.19.0
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          channel-id: ${{ needs.prepare.outputs.slack_channel}}
           payload: |
               {
                 "text": "Deployment success!",
@@ -336,7 +347,7 @@ jobs:
         id: slack_notify_notok
         uses: slackapi/slack-github-action@v1.19.0
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          channel-id: ${{ needs.prepare.outputs.slack_channel}}
           payload: |
               {
                 "text": "Deployment failure :(",
