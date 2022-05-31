@@ -149,7 +149,6 @@ jobs:
       - name: Check all outputs
         run: |
           echo 'swagger mode > '${{ steps.swagger_files.outputs.swagger }}'
-          echo 'slack channel > ${{ steps.slack_channel_check.outputs.slack_channel}}'
 
   build:
     name: build
