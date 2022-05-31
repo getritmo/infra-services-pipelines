@@ -372,7 +372,7 @@ jobs:
 
       - name: Notify FAIL Staging
         if: needs.deploy.outputs.deployment_status != 'success' && needs.prepare.outputs.slack_channel == 'main'
-        id: slack_notify_fail_sbx
+        id: slack_notify_fail_sta
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: "${{ secrets.SLACK_CHANNEL_STA }}"
