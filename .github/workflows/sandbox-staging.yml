@@ -315,8 +315,8 @@ jobs:
 
       - name: Check outputs
         run: |
-          echo ${{ needs.deploy.outputs.deployment_status}}
-
+          echo "Deployment status > ${{ needs.deploy.outputs.deployment_status}}"
+          echo "Slack Channel > ${{ needs.prepare.outputs.slack_channel }}"
       # Intentionally leaved there for references pourposes
       # - name: Check worfklow status
       # 	id: check_workflow_status
