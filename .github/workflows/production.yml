@@ -82,7 +82,6 @@ jobs:
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
-      slack_channel: ${{ secrets.SLACK_BACKEND_PRO }}
       slack_data: ${{ steps.slack_notify.outputs.slack-result }}
     steps:
       - name: Checkout SERVICE repo
@@ -103,7 +102,7 @@ jobs:
         id: slack_notify
         uses: archive/github-actions-slack@master
         with:
-          slack-channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
+          slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
           slack-bot-user-oauth-access-token:  ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-text: "*Deploying* \n* - Repo:* ${{ github.repository }}\n* - Image SHA:* ${{ github.event.client_payload.slash_command.args.named.image_version }}\n* - Environment:* ${{ inputs.ENVIRONMENT }}\n* - By:* ${{ github.actor }}\n"
 
@@ -262,7 +261,7 @@ jobs:
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
           slack-emoji-name: thumbsup
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
@@ -273,6 +272,6 @@ jobs:
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
           slack-emoji-name: elmofire
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
