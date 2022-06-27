@@ -317,6 +317,7 @@ jobs:
         run: |
           echo "Deployment status > ${{ needs.deploy.outputs.deployment_status }}"
           echo "Slack Channel > ${{ needs.prepare.outputs.slack_channel }}"
+          echo "Slack Data output > ${{ needs.prepare.outputs.slack_data }} "
 
       # Intentionally leaved there for references pourposes
       # - name: Check worfklow status
@@ -338,7 +339,7 @@ jobs:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
           slack-emoji-name: thumbsup
-          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel).response.message.ts }}
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
       - name: Notify OK Sandbox
         if:  inputs.branch != 'main' && needs.deploy.outputs.deployment_status == 'success'
@@ -359,7 +360,7 @@ jobs:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
           slack-emoji-name: thumbsup
-          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel).response.message.ts }}
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
       - name: Notify FAIL Sandbox
         if: inputs.branch != 'main' && needs.deploy.outputs.deployment_status != 'success'
