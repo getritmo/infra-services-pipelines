@@ -100,6 +100,7 @@ jobs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
       slack_channel: ${{ steps.slack_channel_check.outputs.slack_channel }}
+      slack_data: ${{ steps.slack_notify.outputs.slack-result }}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -117,7 +118,7 @@ jobs:
           fi
 
       - name: Post to a Slack channel
-        id: slack
+        id: slack_notify
         uses: archive/github-actions-slack@v2.0.0
         with:
           slack-channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
@@ -308,8 +309,6 @@ jobs:
     name: notify
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     if: ${{ always () }}
     needs: [prepare,build,deploy]
     steps:
@@ -333,12 +332,13 @@ jobs:
       - name: Notify OK Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status == 'success'
         id: slack_notify_ok_sta
-        uses: act10ns/slack@v1
+        uses: archive/github-actions-slack@v2.0.0
         with:
-          status: ${{ job.status }}
-          channel: 'deploy_backend_sta'
-          message: Deployed!
-          config: .github/config/slack.yml
+          slack-function: send-reaction
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-emoji-name: thumbsup
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel).response.message.ts }}
 
       - name: Notify OK Sandbox
         if:  inputs.branch != 'main' && needs.deploy.outputs.deployment_status == 'success'
@@ -355,10 +355,11 @@ jobs:
         id: slack_notify_fail_sta
         uses: act10ns/slack@v1
         with:
-          status: ${{ job.status }}
-          channel: 'deploy_backend_sta'
-          message: Failed!
-          config: .github/config/slack.yml
+          slack-function: send-reaction
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-emoji-name: thumbsup
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel).response.message.ts }}
 
       - name: Notify FAIL Sandbox
         if: inputs.branch != 'main' && needs.deploy.outputs.deployment_status != 'success'
