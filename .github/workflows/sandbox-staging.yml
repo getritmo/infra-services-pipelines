@@ -121,7 +121,7 @@ jobs:
         with:
           slack-channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
           slack-bot-user-oauth-access-token:  ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-text: "*Deploying branch!*\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
+          slack-text: "*Deploying: *\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
           slack-optional-icon_emoji: ":rocket:"
 
       - name: Create ECR registry if doesnt exists
