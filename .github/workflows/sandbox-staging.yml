@@ -84,6 +84,8 @@ on:
         required: true
       PRIVATE_REPO_ACCESS:
         required: true
+      SLACK_WEBHOOK_URL:
+        required: true
 
 name: Services Testing & Integration
 
@@ -92,6 +94,8 @@ jobs:
     name: prepare
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
@@ -107,23 +111,18 @@ jobs:
         id: slack_channel_check
         run: |
           if [[ ${{ inputs.BRANCH }} = 'main' ]]; then
-            echo "::set-output name=slack_channel::${{ secrets.SLACK_CHANNEL_STA }}"
+            echo "::set-output name=slack_channel::${{ secrets.SLACK_BACKEND_STA }}"
           else
-            echo "::set-output name=slack_channel::${{ secrets.SLACK_CHANNEL_SBX }}"
+            echo "::set-output name=slack_channel::${{ secrets.SLACK_BACKEND_SBX }}"
           fi
 
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.19.0
+      - uses: act10ns/slack@v1
         with:
-          # Slack channel id, channel name, or user id to post message.
-          # See also: https://api.slack.com/methods/chat.postMessage#channels
-          channel-id: ${{ steps.slack_channel_check.outputs.slack_channel}}
-          # For posting a simple plain text message
-          slack-message: "*Deploying branch!*\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          GITHUB_ACTOR: $GITHUB_ACTOR
+          status: ${{ job.status }}
+          channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
+          message: Starting deployment...
+          config: .github/config/slack.yml
+        if: always()
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -309,6 +308,8 @@ jobs:
     name: notify
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     if: ${{ always () }}
     needs: [prepare,build,deploy]
     steps:
@@ -332,56 +333,40 @@ jobs:
       - name: Notify OK Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status == 'success'
         id: slack_notify_ok_sta
-        uses: slackapi/slack-github-action@v1.19.0
+        uses: act10ns/slack@v1
         with:
-          channel-id: "${{ secrets.SLACK_CHANNEL_STA }}"
-          payload: |
-              {
-                "text": "Deployment success!",
-                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          status: ${{ job.status }}
+          channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
+          message: Deployed!
+          config: .github/config/slack.yml
 
       - name: Notify OK Sandbox
         if:  inputs.branch != 'main' && needs.deploy.outputs.deployment_status == 'success'
         id: slack_notify_ok_sbx
-        uses: slackapi/slack-github-action@v1.19.0
+        uses: act10ns/slack@v1
         with:
-          channel-id: "${{ secrets.SLACK_CHANNEL_SBX}}"
-          payload: |
-              {
-                "text": "Deployment success!",
-                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          status: ${{ job.status }}
+          channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
+          message: Deployed!
+          config: .github/config/slack.yml
 
       - name: Notify FAIL Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status != 'success'
         id: slack_notify_fail_sta
-        uses: slackapi/slack-github-action@v1.19.0
+        uses: act10ns/slack@v1
         with:
-          channel-id: "${{ secrets.SLACK_CHANNEL_STA }}"
-          payload: |
-              {
-                "text": "Deployment failure :(",
-                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          status: ${{ job.status }}
+          channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
+          message: Failed!
+          config: .github/config/slack.yml
 
       - name: Notify FAIL Sandbox
         if: inputs.branch != 'main' && needs.deploy.outputs.deployment_status != 'success'
         id: slack_notify_fail_sbx
-        uses: slackapi/slack-github-action@v1.19.0
+        uses: act10ns/slack@v1
         with:
-          channel-id: "${{ secrets.SLACK_CHANNEL_SBX }}"
-          payload: |
-              {
-                "text": "Deployment failure :(",
-                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          status: ${{ job.status }}
+          channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
+          message: Failed!
+          config: .github/config/slack.yml
 
