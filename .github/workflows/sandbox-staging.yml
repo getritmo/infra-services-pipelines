@@ -122,7 +122,7 @@ jobs:
         with:
           slack-channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
           slack-bot-user-oauth-access-token:  ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-text: "*Deploying: *\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
+          slack-text: "*Deploying* \n* - Repo:* ${{ github.repository }}\n* - Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n* - Environment:* ${{ inputs.ENVIRONMENT }}\n* - By:* ${{ github.actor }}\n"
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -336,18 +336,19 @@ jobs:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
-          slack-emoji-name: ":rocket:"
+          slack-emoji-name: thumbsup
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
       - name: Notify OK Sandbox
         if:  inputs.branch != 'main' && needs.deploy.outputs.deployment_status == 'success'
         id: slack_notify_ok_sbx
-        uses: act10ns/slack@v1
+        uses: archive/github-actions-slack@master
         with:
-          status: ${{ job.status }}
-          channel: 'deploy_backend_sbx'
-          message: Deployed!
-          config: .github/config/slack.yml
+          slack-function: send-reaction
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-emoji-name: thumbsup
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
       - name: Notify FAIL Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status != 'success'
@@ -357,16 +358,17 @@ jobs:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
-          slack-emoji-name: thumbsup
+          slack-emoji-name: elmofire
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
       - name: Notify FAIL Sandbox
         if: inputs.branch != 'main' && needs.deploy.outputs.deployment_status != 'success'
         id: slack_notify_fail_sbx
-        uses: act10ns/slack@v1
+        uses: archive/github-actions-slack@master
         with:
-          status: ${{ job.status }}
-          channel: 'deploy_backend_sbx'
-          message: Failed!
-          config: .github/config/slack.yml
+          slack-function: send-reaction
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-emoji-name: "elmofire"
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
