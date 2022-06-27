@@ -117,7 +117,7 @@ jobs:
             echo "::set-output name=slack_channel::${{ secrets.SLACK_BACKEND_SBX }}"
           fi
 
-      - name: Post to a Slack channel
+      - name: Notify to Slack
         id: slack_notify
         uses: archive/github-actions-slack@v2.0.0
         with:
@@ -354,7 +354,7 @@ jobs:
       - name: Notify FAIL Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status != 'success'
         id: slack_notify_fail_sta
-        uses: act10ns/slack@v1
+        uses: archive/github-actions-slack@v2.0.0
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
