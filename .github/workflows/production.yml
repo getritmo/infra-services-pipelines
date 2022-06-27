@@ -263,7 +263,7 @@ jobs:
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
           slack-emoji-name: thumbsup
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
@@ -274,6 +274,6 @@ jobs:
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
           slack-emoji-name: elmofire
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
