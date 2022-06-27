@@ -84,8 +84,6 @@ on:
         required: true
       PRIVATE_REPO_ACCESS:
         required: true
-      SLACK_WEBHOOK_URL:
-        required: true
 
 name: Services Testing & Integration
 
