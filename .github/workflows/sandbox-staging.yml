@@ -119,11 +119,12 @@ jobs:
 
       - name: Notify to Slack
         id: slack_notify
-        uses: archive/github-actions-slack@v2.0.0
+        uses: archive/github-actions-slack@master
         with:
           slack-channel: ${{ steps.slack_channel_check.outputs.slack_channel}}
           slack-bot-user-oauth-access-token:  ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-text: "*Deploying branch!*\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ inputs.BRANCH || 'sandbox' }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
+          slack-optional-icon_emoji: ":rocket:"
 
       - name: Create ECR registry if doesnt exists
         uses: getritmo/aws-ecr-action@v1.1
@@ -333,7 +334,7 @@ jobs:
       - name: Notify OK Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status == 'success'
         id: slack_notify_ok_sta
-        uses: archive/github-actions-slack@v2.0.0
+        uses: archive/github-actions-slack@master
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
@@ -354,7 +355,7 @@ jobs:
       - name: Notify FAIL Staging
         if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status != 'success'
         id: slack_notify_fail_sta
-        uses: archive/github-actions-slack@v2.0.0
+        uses: archive/github-actions-slack@master
         with:
           slack-function: send-reaction
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
