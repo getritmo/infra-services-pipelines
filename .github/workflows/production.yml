@@ -82,7 +82,7 @@ jobs:
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
-      slack_channel: ${{ steps.slack_channel_check.outputs.slack_channel }}
+      slack_channel: ${{ secrets.SLACK_BACKEND_PRO }}
       slack_data: ${{ steps.slack_notify.outputs.slack-result }}
     steps:
       - name: Checkout SERVICE repo
