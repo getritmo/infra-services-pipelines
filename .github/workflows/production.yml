@@ -243,6 +243,8 @@ jobs:
       - name: Check outputs
         run: |
           echo ${{ needs.deploy.outputs.deployment_status}}
+          echo "Slack Channel > ${{ needs.prepare.outputs.slack_channel }}"
+          echo "Slack Data output > ${{ needs.prepare.outputs.slack_data }} "
 
       # Intentionally leaved there for references pourposes
       # - name: Check worfklow status
