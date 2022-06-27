@@ -94,8 +94,6 @@ jobs:
     name: prepare
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
