@@ -112,7 +112,7 @@ jobs:
           echo "swagger mode > ${{ steps.swagger_files.outputs.swagger }}"
 
   deploy:
-    name: Deploy
+    name: deploy
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
@@ -165,7 +165,7 @@ jobs:
           wait-for-service-stability: true
 
   tag:
-    name: Tag Release
+    name: tag release
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     needs: [deploy]
