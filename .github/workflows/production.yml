@@ -82,7 +82,7 @@ jobs:
     outputs:
       swagger: ${{ steps.swagger_files.outputs.swagger}}
       slack_thread: ${{ steps.slack.outputs.thread_ts }}
-      slack_channel: ${{ steps.slack_channel_check.outputs.slack_channel }}
+      slack_data: ${{ steps.slack_notify.outputs.slack-result }}
     steps:
       - name: Checkout SERVICE repo
         uses: actions/checkout@v2
@@ -97,25 +97,21 @@ jobs:
             echo "::set-output name=swagger::false"
           fi
 
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.19.0
+      - name: Notify to Slack
+        # using this github-action https://github.com/archive/github-actions-slack
+        id: slack_notify
+        uses: archive/github-actions-slack@master
         with:
-          # Slack channel id, channel name, or user id to post message.
-          # See also: https://api.slack.com/methods/chat.postMessage#channels
-          channel-id: ${{ secrets.SLACK_CHANNEL_PRO }}
-          # For posting a simple plain text message
-          slack-message: "*Deploying branch!*\n*Repo:* ${{ github.repository }}\n*Image SHA:* ${{ github.event.client_payload.slash_command.args.named.image_version }}\n*Environment:* ${{ inputs.ENVIRONMENT }}\n*By:* ${{ github.actor }}\n"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          GITHUB_ACTOR: $GITHUB_ACTOR
+          slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
+          slack-bot-user-oauth-access-token:  ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-text: "*Deploying* \n* - Repo:* ${{ github.repository }}\n* - Image SHA:* ${{ github.event.client_payload.slash_command.args.named.image_version }}\n* - Environment:* ${{ inputs.ENVIRONMENT }}\n* - By:* ${{ github.actor }}\n"
 
       - name: Check all outputs
         run: |
           echo "swagger mode > ${{ steps.swagger_files.outputs.swagger }}"
 
   deploy:
-    name: Deploy
+    name: deploy
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     outputs:
@@ -168,7 +164,7 @@ jobs:
           wait-for-service-stability: true
 
   tag:
-    name: Tag Release
+    name: tag release
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     needs: [deploy]
@@ -247,6 +243,8 @@ jobs:
       - name: Check outputs
         run: |
           echo ${{ needs.deploy.outputs.deployment_status}}
+          echo "Slack Channel > ${{ needs.prepare.outputs.slack_channel }}"
+          echo "Slack Data output > ${{ needs.prepare.outputs.slack_data }} "
 
       # Intentionally leaved there for references pourposes
       # - name: Check worfklow status
@@ -261,27 +259,21 @@ jobs:
       - name: Notify deployment ok
         if: needs.deploy.outputs.deployment_status == 'success'
         id: slack_notify_ok
-        uses: slackapi/slack-github-action@v1.19.0
+        uses: archive/github-actions-slack@master
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_PRO }}
-          payload: |
-              {
-                "text": "Deployment success!",
-                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-function: send-reaction
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-emoji-name: thumbsup
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
 
       - name: Notify deployment not ok
         if: needs.deploy.outputs.deployment_status != 'success'
         id: slack_notify_notok
-        uses: slackapi/slack-github-action@v1.19.0
+        uses: archive/github-actions-slack@master
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_PRO }}
-          payload: |
-              {
-                "text": "Deployment failure :(",
-                "thread_ts": "${{ needs.prepare.outputs.slack_thread }}"
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-function: send-reaction
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+          slack-emoji-name: elmofire
+          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
