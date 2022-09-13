@@ -155,13 +155,13 @@ jobs:
           container-name: ${{ inputs.CONTAINER_NAME }}
           image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ github.event.client_payload.slash_command.args.named.image_version }}
 
-      - name: Deploying ECS task on ECS cluster...
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ inputs.SERVICE_NAME }}
-          cluster: ${{ inputs.CLUSTER_INT }}
-          wait-for-service-stability: true
+      # - name: Deploying ECS task on ECS cluster...
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+      #     service: ${{ inputs.SERVICE_NAME }}
+      #     cluster: ${{ inputs.CLUSTER_INT }}
+      #     wait-for-service-stability: true
 
       - name: Save task-definition
         run: |
