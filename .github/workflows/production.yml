@@ -165,7 +165,7 @@ jobs:
 
       - name: Save task-definition
         run: |
-          mkdir ./tmp/taskdef
+          mkdir -p ./tmp/taskdef
           cat ${{ steps.task-def.outputs.task-definition }} > ./tmp/taskdef/task-definition.json
 
       - name: Upload task definition
