@@ -163,6 +163,18 @@ jobs:
           cluster: ${{ inputs.CLUSTER_INT }}
           wait-for-service-stability: true
 
+      - name: Save task-definition
+        run: |
+          mkdir ./tmp/taskdef
+          cat ${{ steps.task-def.outputs.task-definition }} > ./tmp/taskdef/task-definition.json
+
+      - name: Upload task definition
+        id: upload-task-defition
+        uses: actions/upload-artifact@v3
+        with:
+          name: task-definition
+          path: ./tmp/taskdef/task-definition.json
+
   tag:
     name: tag release
     runs-on: ubuntu-latest
@@ -277,3 +289,33 @@ jobs:
           slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
           slack-emoji-name: elmofire
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
+
+  logbook:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    if: ${{ always () }}
+    needs: [prepare,deploy]
+    steps:
+
+    - name: Get task-definition
+      uses: actions/download-artifact@v3
+      with:
+        name: task-definition
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - uses: jakejarvis/s3-sync-action@master
+      env:
+        AWS_S3_BUCKET: systems-production-logbook-bucket
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        SOURCE_DIR: ./
+        DEST_DIR: ${{ github.repository }}
+      with:
+        args: --follow-symlinks --delete
