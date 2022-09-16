@@ -321,6 +321,7 @@ jobs:
         run: |
           ENCODED=$(cat ./task-definition.json | base64)
           echo TASK_DEF=$ENCODED >> $GITHUB_ENV
+          printenv
 
       - name: Upload base64 taskdef to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
