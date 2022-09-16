@@ -162,13 +162,13 @@ jobs:
           container-name: ${{ inputs.CONTAINER_NAME }}
           image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ github.event.client_payload.slash_command.args.named.image_version }}
 
-      # - name: Deploying ECS task on ECS cluster...
-      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      #   with:
-      #     task-definition: ${{ steps.task-def.outputs.task-definition }}
-      #     service: ${{ inputs.SERVICE_NAME }}
-      #     cluster: ${{ inputs.CLUSTER_INT }}
-      #     wait-for-service-stability: true
+      - name: Deploying ECS task on ECS cluster...
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ inputs.SERVICE_NAME }}
+          cluster: ${{ inputs.CLUSTER_INT }}
+          wait-for-service-stability: true
 
       - name: Save task-definition
         run: |
@@ -216,50 +216,50 @@ jobs:
           name: release-tag
           path: ./tmp/release-tag.txt
 
-  # swagger:
-  #   name: swagger
-  #   runs-on: ubuntu-latest
-  #   environment: ${{ inputs.ENVIRONMENT }}
-  #   if: needs.prepare.outputs.swagger == 'true'
-  #   needs: [deploy, prepare]
-  #   steps:
-  #     - name: Download release asset
-  #       uses: dawidd6/action-download-artifact@v2
-  #       with:
-  #         workflow: service-staging.yml
-  #         github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
-  #         workflow_conclusion: success
-  #         branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
-  #         name: swagger_documentation
-  #         path: ./docs
+  swagger:
+    name: swagger
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENVIRONMENT }}
+    if: needs.prepare.outputs.swagger == 'true'
+    needs: [deploy, prepare]
+    steps:
+      - name: Download release asset
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: service-staging.yml
+          github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
+          workflow_conclusion: success
+          branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
+          name: swagger_documentation
+          path: ./docs
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: eu-west-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
-  #     - name: Rename swagger to service name
-  #       shell: bash
-  #       run: |
-  #         mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+      - name: Rename swagger to service name
+        shell: bash
+        run: |
+          mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
 
-  #     - name: Push api doc to swagger bucket
-  #       uses: jakejarvis/s3-sync-action@master
-  #       with:
-  #         args: --acl private --follow-symlinks
-  #       env:
-  #         AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
-  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         AWS_REGION: eu-west-1
-  #         SOURCE_DIR: ${{ inputs.DOC_PATH }}
-  #         DEST_DIR: ${{ inputs.ENVIRONMENT }}
+      - name: Push api doc to swagger bucket
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl private --follow-symlinks
+        env:
+          AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+          SOURCE_DIR: ${{ inputs.DOC_PATH }}
+          DEST_DIR: ${{ inputs.ENVIRONMENT }}
 
-  #     - name: Invalidate old cache
-  #       run: |
-  #         aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
+      - name: Invalidate old cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
 
   notify:
     name: notify
