@@ -62,7 +62,7 @@ on:
         required: false
         type: string
       STRING_TO_DELETE:
-        default: "getritmo/"
+        default: "getritmo\/"
         required: false
         type: string
       TESTING_REPO:
@@ -323,7 +323,7 @@ jobs:
         id: encode
         run: |
           ENCODED=$(cat ./task-definition.json | base64)
-          REPOSITORY=$( echo ${{ github.repository }} | sed 's/${{ inputs.STRING_TO_DELETE }}\///g' )
+          REPOSITORY=$( echo ${{ github.repository }} | sed 's/${{ inputs.STRING_TO_DELETE }}//g' )
           echo TASK_DEF=$ENCODED >> $GITHUB_ENV
           echo SSM_PATH=$REPOSITORY >> $GITHUB_ENV
 
