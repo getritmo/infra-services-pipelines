@@ -317,8 +317,8 @@ jobs:
       shell: bash
       id: encode
       run: |
-        set TASK_DEF=$(cat ./task-definition.json | base64)
-        cat $TASK_DEF >$GITHUB_ENV
+        ENCODED=$(cat ./task-definition.json | base64)
+        echo TASK_DEF=$ENCODED >> $GITHUB_ENV
 
     - name: TEST
       shell: bash
