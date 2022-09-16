@@ -204,8 +204,7 @@ jobs:
       - name: Saving release tag for logbook
         id: tag_release
         run: |
-          TAG="${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
-          echo RELEASE_TAG=$TAG >> $GITHUB_ENV
+          "echo ::set-output name=tag::${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}
 
   # swagger:
   #   name: swagger
@@ -321,7 +320,6 @@ jobs:
         run: |
           ENCODED=$(cat ./task-definition.json | base64)
           echo TASK_DEF=$ENCODED >> $GITHUB_ENV
-          printenv
 
       - name: Upload base64 taskdef to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
@@ -330,4 +328,4 @@ jobs:
           ssm-value: ${{ env.TASK_DEF }}
           aws-region: ${{ secrets.AWS_REGION }}
           ssm-value-type: "String"
-          ssm-value-description: ${{ env.RELEASE_TAG }}
+          ssm-value-description: ${{ needs.tag.outputs.release_tag }}
