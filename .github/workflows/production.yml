@@ -315,15 +315,15 @@ jobs:
 
     - name: Encode task definition to base 64
       shell: bash
-      id: task_def_prepare
+      id: taskdefencode
       run: |
-        echo "::set-output name=task_definition_encoded:$(cat ./task-definition.json | base64)"
+        echo "::set-output name=encoded:$(cat ./task-definition.json | base64)"
 
     - name: Upload base64 taskdef to SSM
       uses: joshghent/aws-ssm-parameter-store@v2.2.0
       with:
         ssm-path: "/testing/thepath"
-        ssm-value: ${{ steps.task_def_prepare.outputs.task_definition_encoded }}
+        ssm-value: ${{ steps.taskdefencode.outputs.encoded }}
         aws-region: ${{ secrets.AWS_REGION }}
         ssm-value-type: "String"
 
