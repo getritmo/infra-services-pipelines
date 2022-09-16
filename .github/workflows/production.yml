@@ -206,9 +206,17 @@ jobs:
           tag: ${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}
 
       - name: Saving release tag for logbook
-        id: tag-release
+        id: release-tag
         run: |
-          echo "::set-output name=tag::${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
+          mkdir -p ./tmp/
+          echo "${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"" > ./tmp/release-tag.txt
+
+      - name: Upload release-tag
+        id: upload-task-defition
+        uses: actions/upload-artifact@v3
+        with:
+          name: tag-release
+          path: ./tmp/tag-release.txt
 
   # swagger:
   #   name: swagger
@@ -311,6 +319,11 @@ jobs:
         with:
           name: task-definition
 
+      - name: Get release-tag
+        uses: actions/download-artifact@v3
+        with:
+          name: release-tag
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -318,20 +331,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Encode task definition to base 64
+      - name: Prepare SSM values
         shell: bash
         id: encode
         run: |
           ENCODED=$(cat ./task-definition.json | base64)
           REPOSITORY=$( echo ${{ github.repository }} | sed 's/${{ inputs.STRING_TO_DELETE }}//g' )
+          TAG=$( cat ./tmp/release-tag.txt )
           echo TASK_DEF=$ENCODED >> $GITHUB_ENV
           echo SSM_PATH=$REPOSITORY >> $GITHUB_ENV
+          echo RELEASE_TAG=$TAG >> $GITHUB_ENV
 
       - name: Upload base64 taskdef to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
         with:
-          ssm-path: ${{ env.SSM_PATH }}
+          ssm-path: ${{inputs.ENV}}/${{ env.SSM_PATH }}
           ssm-value: ${{ env.TASK_DEF }}
           aws-region: ${{ secrets.AWS_REGION }}
           ssm-value-type: "String"
-          ssm-value-description: ${{ needs.tag.outputs.release-tag }}
+          ssm-value-description: ${{ env.RELEASE_TAG }}
