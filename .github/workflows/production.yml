@@ -335,7 +335,7 @@ jobs:
         run: |
           ENCODED=$(cat ./task-definition.json | base64)
           REPOSITORY=$( echo ${{ github.repository }} | sed 's/${{ inputs.STRING_TO_DELETE }}//g' )
-          TAG=$( cat ./tmp/release-tag.txt )
+          TAG=$( cat ./release-tag.txt )
           echo TASK_DEF=$ENCODED >> $GITHUB_ENV
           echo SSM_PATH=$REPOSITORY >> $GITHUB_ENV
           echo RELEASE_TAG=$TAG >> $GITHUB_ENV
