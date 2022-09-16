@@ -203,7 +203,16 @@ jobs:
 
       - name: Saving release tag for logbook
         id: tag_release
-        run: echo "::set-output name=tag::${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
+        run: |
+          TAG=$( ${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }} )
+          echo RELEASE_TAG=$TAG >> $GITHUB_ENV
+
+      - name: Encode Task Def to base64
+        shell: bash
+        id: encode
+        run: |
+          ENCODED=$(cat ./task-definition.json | base64)
+          echo TASK_DEF=$ENCODED >> $GITHUB_ENV
 
   swagger:
     name: swagger
@@ -214,11 +223,9 @@ jobs:
     steps:
       - name: Download release asset
         uses: dawidd6/action-download-artifact@v2
-        #f: needs.prepare.outputs.swagger == 'true'
         with:
           workflow: service-staging.yml
           github_token: ${{ secrets.PRIVATE_REPO_ACCESS }}
-          #run_id: ${{steps.get_run_id.outputs.run_id}}
           workflow_conclusion: success
           branch: ${{ inputs.DEPLOY_PRO_BRANCH }}
           name: swagger_documentation
@@ -322,13 +329,6 @@ jobs:
           ENCODED=$(cat ./task-definition.json | base64)
           echo TASK_DEF=$ENCODED >> $GITHUB_ENV
 
-      - name: TEST
-        shell: bash
-        run: |
-          printenv
-          echo $TASK_DEF
-          echo ${{ github.repository }}
-
       - name: Upload base64 taskdef to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
         with:
@@ -337,14 +337,3 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           ssm-value-type: "String"
           ssm-value-description: "test"
-
-    # - uses: jakejarvis/s3-sync-action@master
-    #   env:
-    #     AWS_S3_BUCKET: ${{ inputs.LOGBOOK_S3_BUCKET }}
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     AWS_REGION: ${{ secrets.AWS_REGION }}
-    #     SOURCE_DIR: ./
-    #     DEST_DIR: ./${{ github.repository }}
-    #   with:
-    #     args: --follow-symlinks --delete
