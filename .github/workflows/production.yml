@@ -204,7 +204,7 @@ jobs:
       - name: Saving release tag for logbook
         id: tag_release
         run: |
-          "echo ::set-output name=tag::${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}
+          "echo ::set-output name=tag::${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
 
   # swagger:
   #   name: swagger
