@@ -204,7 +204,7 @@ jobs:
       - name: Saving release tag for logbook
         id: tag_release
         run: |
-          TAG="${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}""
+          TAG="${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
           echo RELEASE_TAG=$TAG >> $GITHUB_ENV
 
       - name: Encode Task Def to base64
