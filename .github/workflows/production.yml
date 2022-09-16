@@ -343,7 +343,7 @@ jobs:
       - name: Upload base64 taskdef to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
         with:
-          ssm-path: ${{inputs.ENVIRONMENT   }}/${{ env.SSM_PATH }}
+          ssm-path: "/ecs/${{inputs.ENVIRONMENT}}/${{ env.SSM_PATH }}"
           ssm-value: ${{ env.TASK_DEF }}
           aws-region: ${{ secrets.AWS_REGION }}
           ssm-value-type: "String"
