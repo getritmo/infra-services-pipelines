@@ -320,7 +320,7 @@ jobs:
         echo "::set-output name=task_definition_encoded:$(cat ./task-definition.json | base64)"
 
     - name: Upload base64 taskdef to SSM
-      uses: oshghent/aws-ssm-parameter-store@v2.2.0
+      uses: joshghent/aws-ssm-parameter-store@v2.2.0
       with:
         ssm-path: "/testing/thepath"
         ssm-value: ${{ steps.task_def_prepare.outputs.task_definition_encoded }}
