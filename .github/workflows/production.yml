@@ -207,13 +207,6 @@ jobs:
           TAG="${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
           echo RELEASE_TAG=$TAG >> $GITHUB_ENV
 
-      - name: Encode Task Def to base64
-        shell: bash
-        id: encode
-        run: |
-          ENCODED=$(cat ./task-definition.json | base64)
-          echo TASK_DEF=$ENCODED >> $GITHUB_ENV
-
   # swagger:
   #   name: swagger
   #   runs-on: ubuntu-latest
@@ -336,4 +329,4 @@ jobs:
           ssm-value: ${{ env.TASK_DEF }}
           aws-region: ${{ secrets.AWS_REGION }}
           ssm-value-type: "String"
-          ssm-value-description: "test"
+          ssm-value-description: ${{ env.RELEASE_TAG }}
