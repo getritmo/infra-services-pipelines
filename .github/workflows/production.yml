@@ -209,9 +209,9 @@ jobs:
         id: release-tag
         run: |
           mkdir -p ./tmp/
-          echo "${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}" > ./tmp/release-tag.txt
+          echo "${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}" > ./tmp/tag-release.txt
 
-      - name: Upload release-tag
+      - name: Upload tag-release
         id: upload-task-defition
         uses: actions/upload-artifact@v3
         with:
