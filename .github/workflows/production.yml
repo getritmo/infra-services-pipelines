@@ -313,20 +313,17 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: debug
+    - name: Encode task definition to base 64
       shell: bash
-      id: debug
+      id: task_def_prepare
       run: |
-        echo Github repository > ${{ github.repository }}
-        cat ./task-definition.json | base64 > $TASKDEF_ENCODED
-        echo $TASKDEF_ENCODED > $GITHUB_ENV
-        echo $GITHUB_ENV
+        echo "::set-output name=task_definition_encoded:$(cat ./task-definition.json | base64)"
 
     - name: Upload base64 taskdef to SSM
-      uses: joshghent/aws-ssm-parameter-store@v2
+      uses: oshghent/aws-ssm-parameter-store@v2.2.0
       with:
-        ssm-path: "/joshghent/hello"
-        ssm-value: ${{ secrets.WORLD }}
+        ssm-path: "/testing/thepath"
+        ssm-value: ${{ steps.task_def_prepare.outputs.task_definition_encoded }}
         aws-region: ${{ secrets.AWS_REGION }}
         ssm-value-type: "String"
 
