@@ -313,13 +313,30 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - uses: jakejarvis/s3-sync-action@master
-      env:
-        AWS_S3_BUCKET: ${{ inputs.LOGBOOK_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        SOURCE_DIR: ./
-        DEST_DIR: ./${{ github.repository }}
+    - name: debug
+      shell: bash
+      id: debug
+      run: |
+        echo Github repository > ${{ github.repository }}
+        cat ./task-definition.json | base64 > $TASKDEF_ENCODED
+        echo $TASKDEF_ENCODED > $GITHUB_ENV
+        echo $GITHUB_ENV
+
+    - name: Upload base64 taskdef to SSM
+      uses: joshghent/aws-ssm-parameter-store@v2
       with:
-        args: --follow-symlinks --delete
+        ssm-path: "/joshghent/hello"
+        ssm-value: ${{ secrets.WORLD }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        ssm-value-type: "String"
+
+    # - uses: jakejarvis/s3-sync-action@master
+    #   env:
+    #     AWS_S3_BUCKET: ${{ inputs.LOGBOOK_S3_BUCKET }}
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     AWS_REGION: ${{ secrets.AWS_REGION }}
+    #     SOURCE_DIR: ./
+    #     DEST_DIR: ./${{ github.repository }}
+    #   with:
+    #     args: --follow-symlinks --delete
