@@ -317,13 +317,20 @@ jobs:
       shell: bash
       id: encode
       run: |
-        echo "::set-output name=taskdef:$(cat ./task-definition.json | base64)"
+        set TASK_DEF=$(cat ./task-definition.json | base64)
+        cat $TASK_DEF >$GITHUB_ENV
+
+    - name: TEST
+      shell: bash
+      run: |
+        printenv
+        echo $TASK_DEF
 
     - name: Upload base64 taskdef to SSM
       uses: joshghent/aws-ssm-parameter-store@v2.2.0
       with:
-        ssm-path: "/testing/thepath"
-        ssm-value: ${{ steps.envode.outputs.taskdef }}
+        ssm-path: "/ecs/pro/backend-api-users"
+        ssm-value: ${{ env.TASK_DEF }}
         aws-region: ${{ secrets.AWS_REGION }}
         ssm-value-type: "String"
 
