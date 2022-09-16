@@ -187,8 +187,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     needs: [deploy]
-    outputs:
-      release-tag: ${{ steps.tag-release.outputs.tag }}
     steps:
       - name: Get current date
         id: date
@@ -209,14 +207,14 @@ jobs:
         id: release-tag
         run: |
           mkdir -p ./tmp/
-          echo "${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}" > ./tmp/tag-release.txt
+          echo "${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}" > ./tmp/release-tag.txt
 
-      - name: Upload tag-release
+      - name: Upload release tag
         id: upload-task-defition
         uses: actions/upload-artifact@v3
         with:
-          name: tag-release
-          path: ./tmp/tag-release.txt
+          name: release-tag
+          path: ./tmp/release-tag.txt
 
   # swagger:
   #   name: swagger
