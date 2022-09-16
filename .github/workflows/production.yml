@@ -62,7 +62,7 @@ on:
         required: false
         type: string
       STRING_TO_DELETE:
-        default: "getritmo\/"
+        default: 'getritmo\/'
         required: false
         type: string
       TESTING_REPO:
