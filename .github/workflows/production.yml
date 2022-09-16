@@ -77,7 +77,6 @@ on:
 
 name: Services Production
 
-
 jobs:
   prepare:
     name: prepare
@@ -107,7 +106,7 @@ jobs:
         uses: archive/github-actions-slack@master
         with:
           slack-channel: ${{ secrets.SLACK_BACKEND_PRO }}
-          slack-bot-user-oauth-access-token:  ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
           slack-text: "*Deploying* \n* - Repo:* ${{ github.repository }}\n* - Image SHA:* ${{ github.event.client_payload.slash_command.args.named.image_version }}\n* - Environment:* ${{ inputs.ENVIRONMENT }}\n* - By:* ${{ github.actor }}\n"
 
       - name: Check all outputs
@@ -184,6 +183,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     needs: [deploy]
+    outputs:
+      release_tag: ${{ steps.tag_release.outputs.tag }}
     steps:
       - name: Get current date
         id: date
@@ -200,6 +201,10 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}
 
+      - name: Saving release tag for logbook
+        id: tag_release
+        run: echo "::set-output name=tag::${{ steps.date.outputs.date }}-${{ github.event.client_payload.slash_command.args.named.image_version }}"
+
   swagger:
     name: swagger
     runs-on: ubuntu-latest
@@ -207,7 +212,6 @@ jobs:
     if: needs.prepare.outputs.swagger == 'true'
     needs: [deploy, prepare]
     steps:
-
       - name: Download release asset
         uses: dawidd6/action-download-artifact@v2
         #f: needs.prepare.outputs.swagger == 'true'
@@ -253,9 +257,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     if: ${{ always () }}
-    needs: [prepare,deploy]
+    needs: [prepare, deploy]
     steps:
-
       - name: Check outputs
         run: |
           echo ${{ needs.deploy.outputs.deployment_status}}
@@ -298,41 +301,42 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     if: ${{ always () }}
-    needs: [prepare,deploy]
+    needs: [prepare, deploy]
     steps:
+      - name: Get task-definition
+        uses: actions/download-artifact@v3
+        with:
+          name: task-definition
 
-    - name: Get task-definition
-      uses: actions/download-artifact@v3
-      with:
-        name: task-definition
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Encode task definition to base 64
+        shell: bash
+        id: encode
+        run: |
+          ENCODED=$(cat ./task-definition.json | base64)
+          echo TASK_DEF=$ENCODED >> $GITHUB_ENV
 
-    - name: Encode task definition to base 64
-      shell: bash
-      id: encode
-      run: |
-        ENCODED=$(cat ./task-definition.json | base64)
-        echo TASK_DEF=$ENCODED >> $GITHUB_ENV
+      - name: TEST
+        shell: bash
+        run: |
+          printenv
+          echo $TASK_DEF
+          echo ${{ github.repository }}
 
-    - name: TEST
-      shell: bash
-      run: |
-        printenv
-        echo $TASK_DEF
-
-    - name: Upload base64 taskdef to SSM
-      uses: joshghent/aws-ssm-parameter-store@v2.2.0
-      with:
-        ssm-path: "/ecs/pro/backend-api-users"
-        ssm-value: ${{ env.TASK_DEF }}
-        aws-region: ${{ secrets.AWS_REGION }}
-        ssm-value-type: "String"
+      - name: Upload base64 taskdef to SSM
+        uses: joshghent/aws-ssm-parameter-store@v2.2.0
+        with:
+          ssm-path: "/ecs/pro/backend-api-users"
+          ssm-value: ${{ env.TASK_DEF }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          ssm-value-type: "String"
+          ssm-value-description: ${{ needs.tag.outputs.release_tag }}
 
     # - uses: jakejarvis/s3-sync-action@master
     #   env:
