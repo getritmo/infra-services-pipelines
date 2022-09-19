@@ -164,11 +164,17 @@ jobs:
 
       - name: Deploying ECS task on ECS cluster...
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        id: ecs-deploy
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ inputs.SERVICE_NAME }}
           cluster: ${{ inputs.CLUSTER_INT }}
           wait-for-service-stability: true
+
+      - name: DEBUG > Check if outputs provides arn
+        shell:  bash
+        run :
+          echo "TASK ARN >> ${{ steps.ecs-deploy.outputs.task-definition-arn}} <<"
 
       - name: Save task-definition
         run: |
