@@ -46,10 +46,6 @@ on:
       REPOSITORY_NAME:
         required: true
         type: string
-      LOGBOOK_S3_BUCKET:
-        required: false
-        type: string
-        default: "systems-production-logbook-bucket"
       SERVICE_NAME:
         required: true
         type: string
