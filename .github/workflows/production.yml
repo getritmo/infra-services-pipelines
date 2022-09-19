@@ -174,19 +174,16 @@ jobs:
       - name: DEBUG > Check if outputs provides arn
         shell:  bash
         run :
-          echo "TASK ARN >> ${{ steps.ecs-deploy.outputs.task-definition-arn}} <<"
+          echo "TASK ARN >> ${{ steps.ecs-deploy.outputs.task-definition-arn }} <<"
 
-      - name: Save task-definition
-        run: |
-          mkdir -p ./tmp/taskdef
-          cat ${{ steps.task-def.outputs.task-definition }} > ./tmp/taskdef/task-definition.json
-
-      - name: Upload task definition
-        id: upload-task-defition
-        uses: actions/upload-artifact@v3
+      - name: Upload arn to SSM
+        uses: joshghent/aws-ssm-parameter-store@v2.2.0
         with:
-          name: task-definition
-          path: ./tmp/taskdef/task-definition.json
+          ssm-path: "/ecs/${{inputs.ENVIRONMENT}}/${{ env.SSM_PATH }}"
+          ssm-value: ${{ steps.ecs-deploy.outputs.task-definition-arn }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          ssm-value-type: "String"
+          ssm-value-description: ${{ env.RELEASE_TAG }}
 
   tag:
     name: tag release
@@ -311,46 +308,3 @@ jobs:
           slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
           slack-emoji-name: elmofire
           slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
-
-  logbook:
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ always () }}
-    needs: [prepare, deploy]
-    steps:
-      - name: Get task-definition
-        uses: actions/download-artifact@v3
-        with:
-          name: task-definition
-
-      - name: Get release-tag
-        uses: actions/download-artifact@v3
-        with:
-          name: release-tag
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Prepare SSM values
-        shell: bash
-        id: encode
-        run: |
-          ENCODED=$(cat ./task-definition.json | base64)
-          REPOSITORY=$( echo ${{ github.repository }} | sed 's/${{ inputs.STRING_TO_DELETE }}//g' )
-          TAG=$( cat ./release-tag.txt )
-          echo TASK_DEF=$ENCODED >> $GITHUB_ENV
-          echo SSM_PATH=$REPOSITORY >> $GITHUB_ENV
-          echo RELEASE_TAG=$TAG >> $GITHUB_ENV
-
-      - name: Upload base64 taskdef to SSM
-        uses: joshghent/aws-ssm-parameter-store@v2.2.0
-        with:
-          ssm-path: "/ecs/${{inputs.ENVIRONMENT}}/${{ env.SSM_PATH }}"
-          ssm-value: ${{ env.TASK_DEF }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          ssm-value-type: "String"
-          ssm-value-description: ${{ env.RELEASE_TAG }}
