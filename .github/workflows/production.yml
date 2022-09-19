@@ -171,11 +171,6 @@ jobs:
           cluster: ${{ inputs.CLUSTER_INT }}
           wait-for-service-stability: true
 
-      - name: DEBUG > Check if outputs provides arn
-        shell:  bash
-        run :
-          echo "TASK ARN >> ${{ steps.ecs-deploy.outputs.task-definition-arn }} <<"
-
       - name: Upload arn to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
         with:
