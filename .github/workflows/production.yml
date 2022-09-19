@@ -171,6 +171,13 @@ jobs:
           cluster: ${{ inputs.CLUSTER_INT }}
           wait-for-service-stability: true
 
+      - name: Prepare SSM values
+        shell: bash
+        id: encode
+        run: |
+          REPOSITORY=$( echo ${{ github.repository }} | sed 's/${{ inputs.STRING_TO_DELETE }}//g' )
+          echo SSM_PATH=$REPOSITORY >> $GITHUB_ENV
+
       - name: Upload arn to SSM
         uses: joshghent/aws-ssm-parameter-store@v2.2.0
         with:
