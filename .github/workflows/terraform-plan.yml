@@ -107,7 +107,7 @@ jobs:
         uses: actions/checkout@v3
         id: checkout_tf_repo
         with:
-          repository: "getritmo/devops-iac-ephemeral"
+          repository: ${{ inputs.TF_EPHEMERAL_REPO }}
           ref: "main"
           path: '/devops/tf'
 
