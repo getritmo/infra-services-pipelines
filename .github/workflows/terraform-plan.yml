@@ -105,7 +105,7 @@ jobs:
 
       - name: Checkout ephemeral tf repo
         uses: actions/checkout@v3
-        id: checkout_repo
+        id: checkout_tf_repo
         with:
           repository: "getritmo/devops-iac-ephemeral"
           ref: "main"
