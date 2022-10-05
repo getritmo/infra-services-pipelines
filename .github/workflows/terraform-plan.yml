@@ -109,7 +109,7 @@ jobs:
         with:
           repository: "getritmo/devops-iac-ephemeral"
           ref: "main"
-        path: '/devops/tf'
+          path: '/devops/tf'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
