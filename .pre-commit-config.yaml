@@ -4,9 +4,9 @@ repos:
     rev: 0.15.0
     hooks:
       - id: check-github-actions
-      - id: check-github-workflows
-        files: ^\.github/workflows/
-        types: [yaml]
+#      - id: check-github-workflows
+#        files: ^\.github/workflows/
+#        types: [yaml]
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.26.3
     hooks:
