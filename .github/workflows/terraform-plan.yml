@@ -94,14 +94,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref }}
     env:
-      TF_VAR_git_id: ${{ github.ref }}
+      TF_VAR_git_id: "pr${{ github.event.number }}"
       TF_VAR_environment_id : ${{ github.actor }}
     steps:
-      - name: Checkout SERVICE repo
-        uses: actions/checkout@v3
-        id: checkout_repo
-        with:
-          ref: ${{ inputs.BRANCH }}
 
       - name: Checkout ephemeral tf repo
         uses: actions/checkout@v3
@@ -109,7 +104,6 @@ jobs:
         with:
           repository: ${{ inputs.TF_EPHEMERAL_REPO }}
           ref: "main"
-          path: '/devops/tf'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
