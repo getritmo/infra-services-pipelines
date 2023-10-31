@@ -216,157 +216,157 @@ jobs:
           name: swagger_documentation
           path: ./docs/swagger.yaml
 
-  deploy:
-    name: deploy
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
-    outputs:
-      deployment_status: ${{ job.status }}
-    needs: [build]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: ./
+#  deploy:
+#    name: deploy
+#    runs-on: ubuntu-latest
+#    environment: ${{ inputs.ENVIRONMENT }}
+#    outputs:
+#      deployment_status: ${{ job.status }}
+#    needs: [build]
+#    steps:
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v2
+#        with:
+#          path: ./
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: ${{ secrets.AWS_REGION }}
+#
+#      - name: Print image version
+#        id: recover-build-image
+#        shell: bash
+#        run: |
+#          BUILDIMAGE=`cat ./image_version/buildimage.txt`
+#          echo The result is $BUILDIMAGE
+#          echo "::set-output name=image::$BUILDIMAGE"
+#
+#      - name: Generate task-definition.json
+#        id: task-def
+#        uses: aws-actions/amazon-ecs-render-task-definition@v1
+#        with:
+#          task-definition: ./service_definition/${{ inputs.ENVIRONMENT }}/task-definition.json
+#          container-name: ${{ inputs.CONTAINER_NAME }}
+#          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ needs.build.outputs.image_tag }}
+#
+#      - name: Deploying ECS task on ECS cluster...
+#        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+#        with:
+#          task-definition: ${{ steps.task-def.outputs.task-definition }}
+#          service: ${{ inputs.SERVICE_NAME }}
+#          cluster: ${{ inputs.CLUSTER_INT }}
+#          wait-for-service-stability: true
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#  swagger:
+#    name: swagger
+#    runs-on: ubuntu-latest
+#    environment: ${{ inputs.ENVIRONMENT }}
+#    if: needs.prepare.outputs.swagger == 'true'
+#    needs: [deploy, prepare]
+#    steps:
+#      - name: Download artifacts
+#        uses: actions/download-artifact@v2
+#        with:
+#          path: ./docs
+#          name: swagger_documentation
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: eu-west-1
+#
+#      - name: Rename swagger to service name
+#        shell: bash
+#        run: |
+#          mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
+#
+#      - name: Push api doc to swagger bucket
+#        uses: jakejarvis/s3-sync-action@master
+#        with:
+#          args: --acl private --follow-symlinks
+#        env:
+#          AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          AWS_REGION: ${{ secrets.AWS_REGION }}
+#          SOURCE_DIR: ${{ inputs.DOC_PATH }}
+#          DEST_DIR: ${{ inputs.ENVIRONMENT }}
+#
+#      - name: Invalidate old cache
+#        run: |
+#          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
+#
 
-      - name: Print image version
-        id: recover-build-image
-        shell: bash
-        run: |
-          BUILDIMAGE=`cat ./image_version/buildimage.txt`
-          echo The result is $BUILDIMAGE
-          echo "::set-output name=image::$BUILDIMAGE"
-
-      - name: Generate task-definition.json
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ./service_definition/${{ inputs.ENVIRONMENT }}/task-definition.json
-          container-name: ${{ inputs.CONTAINER_NAME }}
-          image: ${{ inputs.ECR_REGISTRY }}/${{ inputs.REPOSITORY_NAME }}:${{ inputs.MAIN_REPO_PREFIX}}${{ needs.build.outputs.image_tag }}
-
-      - name: Deploying ECS task on ECS cluster...
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ inputs.SERVICE_NAME }}
-          cluster: ${{ inputs.CLUSTER_INT }}
-          wait-for-service-stability: true
-
-  swagger:
-    name: swagger
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
-    if: needs.prepare.outputs.swagger == 'true'
-    needs: [deploy, prepare]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: ./docs
-          name: swagger_documentation
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-
-      - name: Rename swagger to service name
-        shell: bash
-        run: |
-          mv ./docs/swagger.yaml ./docs/${{ inputs.REPOSITORY_NAME }}.yml
-
-      - name: Push api doc to swagger bucket
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --acl private --follow-symlinks
-        env:
-          AWS_S3_BUCKET: ${{ inputs.API_DOC_S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          SOURCE_DIR: ${{ inputs.DOC_PATH }}
-          DEST_DIR: ${{ inputs.ENVIRONMENT }}
-
-      - name: Invalidate old cache
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ inputs.CLOUDFRONT_DISTRIBUTION_API }} --paths "/${{ inputs.ENVIRONMENT }}/*"
-
-
-  notify:
-    name: notify
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
-    if: ${{ always () }}
-    needs: [prepare,build,deploy]
-    steps:
-
-      - name: Check outputs
-        run: |
-          echo "Deployment status > ${{ needs.deploy.outputs.deployment_status }}"
-          echo "Slack Channel > ${{ needs.prepare.outputs.slack_channel }}"
-          echo "Slack Data output > ${{ needs.prepare.outputs.slack_data }} "
-
-      # Intentionally leaved there for references pourposes
-      # - name: Check worfklow status
-      # 	id: check_workflow_status
-      # 	uses: LASER-Yi/workflow-status@v0.0.2
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     workflow: sandbox-staging.yml
-      #     event: workflow_dispatch
-      #     branch: ${{ inputs.BRANCH }}
-
-      - name: Notify OK Staging
-        if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status == 'success'
-        id: slack_notify_ok_sta
-        uses: archive/github-actions-slack@master
-        with:
-          slack-function: send-reaction
-          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
-          slack-emoji-name: thumbsup
-          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
-
-      - name: Notify OK Sandbox
-        if:  inputs.branch != 'main' && needs.deploy.outputs.deployment_status == 'success'
-        id: slack_notify_ok_sbx
-        uses: archive/github-actions-slack@master
-        with:
-          slack-function: send-reaction
-          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
-          slack-emoji-name: thumbsup
-          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
-
-      - name: Notify FAIL Staging
-        if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status != 'success'
-        id: slack_notify_fail_sta
-        uses: archive/github-actions-slack@master
-        with:
-          slack-function: send-reaction
-          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
-          slack-emoji-name: elmofire
-          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
-
-      - name: Notify FAIL Sandbox
-        if: inputs.branch != 'main' && needs.deploy.outputs.deployment_status != 'success'
-        id: slack_notify_fail_sbx
-        uses: archive/github-actions-slack@master
-        with:
-          slack-function: send-reaction
-          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
-          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
-          slack-emoji-name: "elmofire"
-          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
-
+#  notify:
+#    name: notify
+#    runs-on: ubuntu-latest
+#    environment: ${{ inputs.ENVIRONMENT }}
+#    if: ${{ always () }}
+#    needs: [prepare,build,deploy]
+#    steps:
+#
+#      - name: Check outputs
+#        run: |
+#          echo "Deployment status > ${{ needs.deploy.outputs.deployment_status }}"
+#          echo "Slack Channel > ${{ needs.prepare.outputs.slack_channel }}"
+#          echo "Slack Data output > ${{ needs.prepare.outputs.slack_data }} "
+#
+#      # Intentionally leaved there for references pourposes
+#      # - name: Check worfklow status
+#      # 	id: check_workflow_status
+#      # 	uses: LASER-Yi/workflow-status@v0.0.2
+#      #   with:
+#      #     token: ${{ secrets.GITHUB_TOKEN }}
+#      #     workflow: sandbox-staging.yml
+#      #     event: workflow_dispatch
+#      #     branch: ${{ inputs.BRANCH }}
+#
+#      - name: Notify OK Staging
+#        if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status == 'success'
+#        id: slack_notify_ok_sta
+#        uses: archive/github-actions-slack@master
+#        with:
+#          slack-function: send-reaction
+#          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+#          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+#          slack-emoji-name: thumbsup
+#          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
+#
+#      - name: Notify OK Sandbox
+#        if:  inputs.branch != 'main' && needs.deploy.outputs.deployment_status == 'success'
+#        id: slack_notify_ok_sbx
+#        uses: archive/github-actions-slack@master
+#        with:
+#          slack-function: send-reaction
+#          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+#          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+#          slack-emoji-name: thumbsup
+#          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
+#
+#      - name: Notify FAIL Staging
+#        if: inputs.branch == 'main' && needs.deploy.outputs.deployment_status != 'success'
+#        id: slack_notify_fail_sta
+#        uses: archive/github-actions-slack@master
+#        with:
+#          slack-function: send-reaction
+#          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+#          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+#          slack-emoji-name: elmofire
+#          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
+#
+#      - name: Notify FAIL Sandbox
+#        if: inputs.branch != 'main' && needs.deploy.outputs.deployment_status != 'success'
+#        id: slack_notify_fail_sbx
+#        uses: archive/github-actions-slack@master
+#        with:
+#          slack-function: send-reaction
+#          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_APP_BENDER_TOKEN }}
+#          slack-channel: ${{ fromJson(needs.prepare.outputs.slack_data).response.channel }}
+#          slack-emoji-name: "elmofire"
+#          slack-message-timestamp: ${{ fromJson(needs.prepare.outputs.slack_data).response.message.ts }}
+#
