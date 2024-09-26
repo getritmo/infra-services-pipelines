@@ -1,0 +1,194 @@
+---
+on:
+  workflow_call:
+    inputs:
+      ACT_TESTING:
+        required: false
+        type: string
+        default: "false"
+      API_DOC_S3_BUCKET:
+        required: true
+        type: string
+      BRANCH:
+        required: false
+        type: string
+        default: "sandbox"
+      CLOUDFRONT_DISTRIBUTION_API:
+        required: false
+        type: string
+      CLOUDFRONT_DISTRIBUTION_STATICS:
+        required: false
+        type: string
+      CLUSTER_INT:
+        required: true
+        type: string
+      CLUSTER_PUB:
+        required: true
+        type: string
+      CONTAINER_NAME:
+        required: true
+        type: string
+      DOCKER_BUILD_PATH:
+        required: false
+        type: string
+      DOC_PATH:
+        required: true
+        type: string
+      ECR_REGISTRY:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      ECR_POLICY_FILE:
+        default: "ecr_policy_readonly.json"
+        required: false
+        type: string
+      ENV_POLICY_EFFECT:
+        default: "allow"
+        required: false
+        type: string
+      ENV_POLICY_SID:
+        default: "EKS/ECS Policy SID for ECR Repository"
+        required: false
+        type: string
+      MAIN_REPO_PREFIX:
+        required: false
+        type: string
+      REPOSITORY_NAME:
+        required: true
+        type: string
+      SERVICE_NAME:
+        required: true
+        type: string
+      SWAGGER:
+        default: "true"
+        required: false
+        type: string
+      SWAGGER_FILE:
+        default: ./docs/swagger.yaml
+        required: false
+        type: string
+      TESTING_REPO:
+        required: true
+        type: string
+      TF_EPHEMERAL_REPO:
+        required: true
+        type: string
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true
+      PRIVATE_REPO_ACCESS:
+        required: true
+
+jobs:
+  prepare_tf:
+    name: prepare_tf
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref }}
+    env:
+      TF_VAR_git_id: "pr${{ github.event.number }}"
+      TF_VAR_environment_id : ${{ github.actor }}
+    steps:
+
+      - name: Checkout ephemeral tf repo
+        uses: actions/checkout@v3
+        id: checkout_tf_repo
+        with:
+          repository: ${{ inputs.TF_EPHEMERAL_REPO }}
+          ref: "main"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Prepare TF
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_version: "1.1.9"
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+
+      - name: Create comment with tf plan
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
+            })
+
+            // 2. Prepare format of the comment
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+
+
