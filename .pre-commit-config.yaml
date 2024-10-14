@@ -1,14 +1,14 @@
 ---
 repos:
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.15.0
+    rev: 0.29.4
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
         files: ^\.github/workflows/
         types: [yaml]
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.26.3
+    rev: v1.35.1
     hooks:
       - id: yamllint
         args: [-d relaxed]
